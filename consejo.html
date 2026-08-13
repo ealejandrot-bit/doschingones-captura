@@ -154,7 +154,7 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
     </div>
   </div>
   <div class="bar">
-    <div class="seg"><button id="vEst" class="on" onclick="setView('estatus')">Por estatus</button><button id="vPer" onclick="setView('persona')">Por persona</button><button id="vCat" onclick="setView('cat')">Por tema</button></div>
+    <div class="seg"><button id="vEst" class="on" onclick="setView('estatus')">Por estatus</button><button id="vPer" onclick="setView('persona')">Por persona</button><button id="vCat" onclick="setView('cat')">Por tema</button><button id="vCum" onclick="setView('cumplidos')">🏆 Cumplidos</button></div>
     <select id="filtro" onchange="render()"></select>
     <div class="spacer"></div>
     <button class="mini" onclick="exportar()">📋 Copiar resumen</button>
@@ -291,23 +291,28 @@ window.delAcuerdo=function(id){
   saveCustom(); if(STATE[id]){delete STATE[id];saveS(STATE);} rebuild(); render();
 };
 
+function noCumpl(a){return cur(a).estatus!=="cumpl";}
 function groupBy(){
   var filtro=$("filtro").value;
+  if(VIEW==="cumplidos"){
+    return [{t:"🏆 Base de cumplidos",items:ACUERDOS.filter(function(a){return cur(a).estatus==="cumpl";})}].filter(function(g){return g.items.length;});
+  }
   if(VIEW==="persona"){
     var people=filtro==="__all"?personas():[filtro];
     return people.map(function(p){
-      var items=ACUERDOS.filter(function(a){return a.resp.indexOf(p)>-1;});
+      var items=ACUERDOS.filter(function(a){return a.resp.indexOf(p)>-1 && noCumpl(a);});
       return {t:p, items:items};
     }).filter(function(g){return g.items.length;});
   }
   if(VIEW==="cat"){
     var cats=["Consejo","Sistema","León","Legal"];
     if(filtro!=="__all")cats=[filtro];
-    return cats.map(function(c){return {t:c,items:ACUERDOS.filter(function(a){return a.cat===c;})}}).filter(function(g){return g.items.length;});
+    return cats.map(function(c){return {t:c,items:ACUERDOS.filter(function(a){return a.cat===c && noCumpl(a);})}}).filter(function(g){return g.items.length;});
   }
-  // por estatus
-  var labels={atras:"Atrasados",pend:"Pendientes",prog:"En progreso",cumpl:"Cumplidos"};
-  var ests=filtro==="__all"?ORD_EST:[filtro];
+  // por estatus (los cumplidos viven en su propia base)
+  var labels={atras:"Atrasados",pend:"Pendientes",prog:"En progreso"};
+  var order=["atras","pend","prog"];
+  var ests=filtro==="__all"?order:[filtro];
   return ests.map(function(k){return {t:labels[k],items:ACUERDOS.filter(function(a){return cur(a).estatus===k;})}}).filter(function(g){return g.items.length;});
 }
 var MODE2="exec";
@@ -348,10 +353,11 @@ function fillFiltro(){
   var opts=[["__all","— Todos —"]];
   if(VIEW==="persona")personas().forEach(function(p){opts.push([p,p])});
   else if(VIEW==="cat")["Consejo","Sistema","León","Legal"].forEach(function(c){opts.push([c,c])});
-  else [["atras","Atrasados"],["pend","Pendientes"],["prog","En progreso"],["cumpl","Cumplidos"]].forEach(function(x){opts.push(x)});
+  else if(VIEW==="estatus")[["atras","Atrasados"],["pend","Pendientes"],["prog","En progreso"]].forEach(function(x){opts.push(x)});
   opts.forEach(function(o){var e=document.createElement("option");e.value=o[0];e.textContent=o[1];sel.appendChild(e);});
+  sel.style.display=(VIEW==="cumplidos")?"none":"";
 }
-window.setView=function(v){VIEW=v;$("vEst").classList.toggle("on",v==="estatus");$("vPer").classList.toggle("on",v==="persona");$("vCat").classList.toggle("on",v==="cat");fillFiltro();render();};
+window.setView=function(v){VIEW=v;$("vEst").classList.toggle("on",v==="estatus");$("vPer").classList.toggle("on",v==="persona");$("vCat").classList.toggle("on",v==="cat");$("vCum").classList.toggle("on",v==="cumplidos");fillFiltro();render();};
 window.reset=function(){if(confirm("¿Borrar todos tus cambios (estatus y strikes) y volver al inicio?")){STATE={};saveS(STATE);STRIKES={};saveK();render();}};
 window.exportar=function(){
   var by={};ACUERDOS.forEach(function(a){var s=cur(a);(by[s.estatus]=by[s.estatus]||[]).push("• "+a.tit+" ("+a.resp.join(", ")+") — "+s.avance+"%"+(s.nota?" · "+s.nota:""));});
