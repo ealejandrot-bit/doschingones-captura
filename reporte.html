@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dos Chingones · Reporte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF3D6; --surface:#FFFFFF; --field:#F4E9BE; --field-2:#EADEAE;
+  --ink:#17130C; --ink2:#5A5136; --muted:#AC9F72; --line:#EBDFB2;
+  --accent:#D42E22; --accent-d:#A8231A; --accent-weak:#FBE3A8;
+  --navy:#28347A; --green:#2E7D4F; --cab:#F6E4B8; --red:#D42E22;
+  --script:"Anton",Impact,sans-serif; --sans:"Work Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:26px 20px 90px}
+.topnav{display:flex;gap:5px;background:var(--field);border-radius:12px;padding:5px;margin-bottom:20px}
+.topnav a{flex:1;text-align:center;padding:10px;border-radius:9px;font-size:13.5px;font-weight:700;color:var(--ink2);text-decoration:none;transition:.15s}
+.topnav a.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(23,19,12,.14)}
+.masthead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px;gap:14px;flex-wrap:wrap}
+.eyebrow{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+.wordmark{font-family:var(--script);font-size:40px;line-height:.84;letter-spacing:.02em;color:var(--accent);text-transform:uppercase;text-shadow:2.5px 2.5px 0 var(--ink)}
+.tagline{font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);font-size:11.5px;margin-top:6px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.seg{display:flex;background:var(--field);border-radius:11px;padding:4px}
+.seg button{border:none;background:transparent;color:var(--ink2);font-weight:700;font-size:13px;padding:8px 15px;border-radius:8px;cursor:pointer;font-family:var(--sans);transition:.15s}
+.seg button.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(23,19,12,.14)}
+select{font-size:14px;font-weight:700;padding:9px 12px;border-radius:10px;border:none;background:var(--surface);color:var(--ink);cursor:pointer;box-shadow:0 1px 3px rgba(23,19,12,.08)}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:none;background:var(--field);font-size:15px;cursor:pointer;color:var(--ink2)}
+.icon-btn:active{transform:scale(.94)}
+
+.state{background:var(--surface);border-radius:16px;padding:34px 22px;text-align:center;color:var(--ink2);box-shadow:0 1px 3px rgba(44,40,31,.06)}
+.state .big{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+.state input{width:100%;max-width:430px;margin:14px auto 0;display:block;padding:12px 14px;border:none;border-radius:10px;background:var(--field);font-size:13px;font-family:var(--sans)}
+.state button.go{margin-top:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-weight:700;cursor:pointer;font-family:var(--sans)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px}
+.kpi{background:var(--surface);border-radius:14px;padding:13px 15px;box-shadow:0 1px 3px rgba(44,40,31,.05)}
+.kpi .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700}
+.kpi .val{font-size:20px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.kpi.v .val{color:var(--navy)} .kpi.t .val{color:var(--green)} .kpi.e .val{color:#C17A2B} .kpi.g .val{color:var(--accent)}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.suc{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(44,40,31,.05),0 14px 30px -26px rgba(44,40,31,.5)}
+.suc-head{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;color:#fff;background:var(--accent)}
+.suc-head.presa{background:var(--navy)} .suc-head.leon{background:#7a5b2b}
+.suc-head h2{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.suc-head .rango{font-size:11px;opacity:.9}
+.suc-body{padding:14px 16px}
+.tabla-cab{background:var(--cab);font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;padding:8px 10px;border-radius:7px 7px 0 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+td{padding:5px 10px;border-bottom:1px solid #f4efe2}
+td.amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+tr.vacia td{color:#cabf9f}
+tr.tot td{background:var(--cab);font-weight:800;font-size:14px;border-bottom:none;padding:8px 10px}
+.vt{margin-top:14px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.vt-cab{background:var(--cab);font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;text-align:center;padding:8px}
+tr.vt-tot td{background:#fff;font-weight:800;font-size:15px;border-top:2px solid var(--line)}
+tr.vt-tot td.amt{color:var(--accent)}
+.pagos-garden td:first-child{color:var(--navy);font-weight:600}
+.note{background:var(--surface);border-radius:12px;padding:13px 15px;margin-top:18px;font-size:12px;color:var(--ink2);box-shadow:0 1px 3px rgba(44,40,31,.05)}
+.note b{color:var(--ink)}
+.foot{margin-top:16px;text-align:center;font-size:11px;color:var(--muted)}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a id="navCap" href="#">Captura</a>
+    <a class="active" href="#">Reporte</a>
+  </div>
+  <header class="masthead">
+    <div>
+      <div class="eyebrow">Reporte · Dos Chingones</div>
+      <div class="wordmark">Dos Chingones</div>
+      <div class="tagline">gastos y ventas por sucursal</div>
+    </div>
+    <div class="controls">
+      <div class="seg"><button id="bSem" class="on" onclick="setMode('sem')">Semanal</button><button id="bMen" onclick="setMode('men')">Mensual</button></div>
+      <select id="per" onchange="render()"></select>
+      <button class="icon-btn" title="Actualizar" onclick="cargar()">↻</button>
+      <button class="icon-btn" title="Conexión" onclick="toggleCfg()">⚙</button>
+    </div>
+  </header>
+
+  <div id="app"><div class="state"><div class="big">Cargando datos…</div><div>Conectando con la hoja de Dos Chingones.</div></div></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* ====== CONFIG ====== */
+// Liga /exec del Apps Script (la misma de la app de captura). Si la dejas vacía,
+// se toma la que ya guardó el navegador (dc_url) o se pide una vez.
+var BAKED_URL = "";
+// A dónde apunta la pestaña "Captura" del menú. Vacío = la misma implementación
+// del Apps Script (recomendado). Si tu captura está en otra liga, ponla aquí.
+var CAPTURA_URL = "";
+
+var CONCEPTOS = ["LIMPIEZA","ADELANTO ORTEGA","ADELANTO VIVANCO","DJ","FALTANTES DE NOMINA","HIELO",
+ "INSUMOS COCINA","INSUMOS BARRA","TRASLADOS DE UBER","SUELDO MAY","MATERIAL MTO","PROPINA EN TARJETA",
+ "COMIDA DE PERSONAL","RETIROS DE CAJA","TORTILLAS","PAGOS GARDEN","POSTRES","VARIOS"];
+var MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+var MESL=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+var MODE="sem", ROWS=[], PERIODS={sem:[],men:[]};
+var $=function(id){return document.getElementById(id)};
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function getUrl(){var v=(lsGet("dc_url")||BAKED_URL||"").trim();return /^https:\/\/script\.google\.com\/.+\/exec/.test(v)?v:"";}
+var mx=function(n){return "$"+(n||0).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2})};
+var mx0=function(n){return "$"+Math.round(n||0).toLocaleString("es-MX")};
+
+$("navCap").href = CAPTURA_URL || location.href.split("?")[0];
+
+/* ====== CARGA (JSONP) ====== */
+function cargar(){
+  $("app").innerHTML='<div class="state"><div class="big">Cargando datos…</div><div>Un momento.</div></div>';
+  // Si el reporte se sirve desde el mismo Apps Script, jala directo (sin liga).
+  if(window.google&&google.script&&google.script.run){
+    google.script.run.withSuccessHandler(onData).withFailureHandler(function(){jsonp();}).getReportData();
+    return;
+  }
+  jsonp();
+}
+function jsonp(){
+  var url=getUrl();
+  if(!url){ pedirUrl(); return; }
+  var cb="dcCB_"+Date.now();
+  window[cb]=function(res){ delete window[cb]; onData(res); };
+  var s=document.createElement("script");
+  s.src=url+(url.indexOf("?")>-1?"&":"?")+"action=reporte&callback="+cb+"&t="+Date.now();
+  s.onerror=function(){ $("app").innerHTML='<div class="state"><div class="big">No se pudo conectar</div><div>Revisa la liga del script (⚙) y que esté publicado como "Cualquier usuario".</div></div>'; };
+  document.body.appendChild(s);
+  setTimeout(function(){document.body.removeChild(s);},15000);
+}
+function onData(res){
+  if(!res||!res.ok){ $("app").innerHTML='<div class="state"><div class="big">Error al leer la hoja</div><div>'+((res&&res.error)||"")+'</div></div>'; return; }
+  ROWS=res.rows||[];
+  buildPeriods();
+  fillSelector();
+  render();
+  $("foot").textContent="Datos en vivo de la hoja · "+ROWS.length+" movimientos · actualizado "+new Date().toLocaleString("es-MX");
+}
+
+/* ====== AGRUPADO ====== */
+function lunes(iso){var d=new Date(iso+"T12:00:00");var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return d;}
+function fmtD(d){return d.getDate()+" "+MES[d.getMonth()];}
+function buildPeriods(){
+  var sem={}, men={};
+  ROWS.forEach(function(r){
+    var L=lunes(r.fecha), lk=L.toISOString().slice(0,10);
+    if(!sem[lk]){var e=new Date(L);e.setDate(e.getDate()+6);sem[lk]={key:lk,ini:L,fin:e,label:fmtD(L)+" – "+fmtD(e)+" "+e.getFullYear(),rango:fmtD(L)+" al "+fmtD(e)+" "+e.getFullYear()};}
+    var mk=r.fecha.slice(0,7), mm=parseInt(mk.slice(5,7),10)-1, yy=mk.slice(0,4);
+    if(!men[mk]){men[mk]={key:mk,label:MESL[mm]+" "+yy,rango:MESL[mm]+" "+yy};}
+  });
+  PERIODS.sem=Object.values(sem).sort(function(a,b){return a.key<b.key?1:-1;});
+  PERIODS.men=Object.values(men).sort(function(a,b){return a.key<b.key?1:-1;});
+}
+function rowsIn(per){
+  return ROWS.filter(function(r){
+    return MODE==="sem" ? lunes(r.fecha).toISOString().slice(0,10)===per.key : r.fecha.slice(0,7)===per.key;
+  });
+}
+function sucList(rs){
+  var order=["GARDEN","LA PRESA","LEON"], seen={};
+  rs.forEach(function(r){seen[r.suc]=1;});
+  var list=order.filter(function(s){return seen[s];});
+  Object.keys(seen).forEach(function(s){if(order.indexOf(s)<0)list.push(s);});
+  return list;
+}
+
+/* ====== RENDER ====== */
+function branchData(rs,suc){
+  var g={}, ventas={tarjeta:0,efectivo:0,total:0}, propina=0;
+  rs.forEach(function(r){
+    if(r.suc!==suc) return;
+    if(r.tipo==="Ingreso"){ ventas.tarjeta+=r.tarjeta; ventas.efectivo+=r.efectivo; ventas.total+=r.total; return; }
+    if(r.tipo==="Propina") propina+=r.total;
+    g[r.concepto]=(g[r.concepto]||0)+r.total; // Gasto y Propina caen en la tabla de conceptos
+  });
+  return {g:g,ventas:ventas,propina:propina};
+}
+function tablaConceptos(b){
+  var tot=0;
+  var rows=CONCEPTOS.map(function(c){
+    var v=b.g[c]||0; tot+=v;
+    var cls=v>0?"":" class=\"vacia\"";
+    var pg=c==="PAGOS GARDEN"?" pagos-garden":"";
+    return "<tr"+cls+pg+"><td>"+c+"</td><td class=\"amt\">"+(v>0?mx(v):"")+"</td></tr>";
+  }).join("");
+  return "<div class=\"tabla-cab\"><span>CONCEPTO</span><span>TOTAL</span></div><table>"+rows+
+    "<tr class=\"tot\"><td>TOTAL</td><td class=\"amt\">"+mx(tot)+"</td></tr></table>";
+}
+function ventaTarjeta(b){
+  var t=b.ventas.tarjeta, p=b.propina;
+  return "<div class=\"vt\"><div class=\"vt-cab\">VENTA EN TARJETA</div><table>"+
+    "<tr><td>VENTAS</td><td class=\"amt\">"+mx(t)+"</td></tr>"+
+    "<tr><td>PROPINA</td><td class=\"amt\">"+(p>0?mx(p):"—")+"</td></tr>"+
+    "<tr class=\"vt-tot\"><td>TOTAL</td><td class=\"amt\">"+mx(t+p)+"</td></tr></table></div>";
+}
+function render(){
+  var arr=PERIODS[MODE]; if(!arr.length){ $("app").innerHTML='<div class="state"><div class="big">Aún no hay movimientos</div><div>Captura gastos y ventas y aquí aparecerán.</div></div>'; return; }
+  var idx=Math.min($("per").value|0, arr.length-1), per=arr[idx];
+  var rs=rowsIn(per), sucs=sucList(rs);
+  var vt=0,tar=0,efe=0,gas=0;
+  var cards=sucs.map(function(suc){
+    var b=branchData(rs,suc);
+    vt+=b.ventas.total; tar+=b.ventas.tarjeta; efe+=b.ventas.efectivo;
+    gas+=CONCEPTOS.reduce(function(s,c){return s+(b.g[c]||0);},0);
+    var cls=suc==="LA PRESA"?"presa":(suc==="LEON"?"leon":"garden");
+    var emoji=suc==="LA PRESA"?"🏞️":(suc==="LEON"?"🦁":"🌿");
+    return "<div class=\"suc\"><div class=\"suc-head "+cls+"\"><h2>"+emoji+" "+suc+"</h2><span class=\"rango\">"+per.rango+"</span></div>"+
+      "<div class=\"suc-body\">"+tablaConceptos(b)+ventaTarjeta(b)+"</div></div>";
+  }).join("");
+  var kpis="<div class=\"kpis\">"+
+    "<div class=\"kpi v\"><div class=\"lbl\">Venta total</div><div class=\"val\">"+mx0(vt)+"</div><div class=\"sub\">"+sucs.length+" sucursal(es)</div></div>"+
+    "<div class=\"kpi t\"><div class=\"lbl\">Venta tarjeta/transf.</div><div class=\"val\">"+mx0(tar)+"</div><div class=\"sub\">"+(vt?Math.round(tar/vt*100):0)+"% de la venta</div></div>"+
+    "<div class=\"kpi e\"><div class=\"lbl\">Venta efectivo</div><div class=\"val\">"+mx0(efe)+"</div><div class=\"sub\">"+(vt?Math.round(efe/vt*100):0)+"% de la venta</div></div>"+
+    "<div class=\"kpi g\"><div class=\"lbl\">Gastos</div><div class=\"val\">"+mx0(gas)+"</div><div class=\"sub\">en el periodo</div></div></div>";
+  $("app").innerHTML=kpis+"<div class=\"grid\">"+cards+"</div>"+
+    "<div class=\"note\"><b>Cómo se arma.</b> Todo sale en vivo de la hoja: los <b>gastos</b> se agrupan en tu orden fijo de conceptos, "+
+    "y <b>VENTA EN TARJETA → VENTAS</b> es lo capturado como ingreso por transferencia/tarjeta. Para que la venta cuadre con Poster, "+
+    "captura el corte semanal de cada sucursal como ingreso. Cambia entre <b>Semanal</b> y <b>Mensual</b> arriba.</div>";
+}
+function fillSelector(){var s=$("per");s.innerHTML="";PERIODS[MODE].forEach(function(p,i){var o=document.createElement("option");o.value=i;o.textContent=p.label;s.appendChild(o);});}
+function setMode(m){MODE=m;$("bSem").classList.toggle("on",m==="sem");$("bMen").classList.toggle("on",m==="men");fillSelector();render();}
+
+/* ====== CONFIG DE CONEXIÓN ====== */
+function pedirUrl(){
+  $("app").innerHTML='<div class="state"><div class="big">Conecta la hoja</div>'+
+    '<div>Pega la liga /exec del Apps Script (la misma de la app de captura). Se guarda en este dispositivo.</div>'+
+    '<input id="urlIn" placeholder="https://script.google.com/macros/s/AKfy.../exec" value="'+(lsGet("dc_url")||"")+'">'+
+    '<button class="go" onclick="guardarUrl()">Conectar</button></div>';
+}
+function guardarUrl(){var v=($("urlIn").value||"").trim(); if(!/^https:\/\/script\.google\.com\/.+\/exec/.test(v)){alert("La liga debe terminar en /exec");return;} lsSet("dc_url",v); cargar();}
+function toggleCfg(){pedirUrl();}
+
+cargar();
+</script>
+</body>
+</html>
