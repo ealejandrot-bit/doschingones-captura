@@ -30,6 +30,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 .seg button.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(23,19,12,.14)}
 select{font-size:14px;font-weight:700;padding:9px 12px;border-radius:10px;border:none;background:var(--surface);color:var(--ink);cursor:pointer;box-shadow:0 1px 3px rgba(23,19,12,.08)}
 .icon-btn{width:38px;height:38px;border-radius:10px;border:none;background:var(--field);font-size:15px;cursor:pointer;color:var(--ink2)}
+.btn-poster{border:none;background:var(--green);color:#fff;font-weight:700;font-size:12.5px;padding:9px 13px;border-radius:10px;cursor:pointer;box-shadow:0 1px 3px rgba(23,19,12,.12)}
+.btn-poster:disabled{opacity:.6;cursor:default}
 .icon-btn:active{transform:scale(.94)}
 
 .state{background:var(--surface);border-radius:16px;padding:34px 22px;text-align:center;color:var(--ink2);box-shadow:0 1px 3px rgba(44,40,31,.06)}
@@ -85,7 +87,8 @@ tr.vt-tot td.amt{color:var(--accent)}
     <div class="controls">
       <div class="seg"><button id="bSem" onclick="setMode('sem')">Semanal</button><button id="bMen" class="on" onclick="setMode('men')">Mensual</button></div>
       <select id="per" onchange="render()"></select>
-      <button class="icon-btn" title="Actualizar" onclick="cargar()">↻</button>
+      <button class="btn-poster" id="btnSync" onclick="syncPoster()">⟳ Traer de Poster</button>
+      <button class="icon-btn" title="Refrescar vista" onclick="cargar()">↻</button>
       <button class="icon-btn" title="Conexión" onclick="toggleCfg()">⚙</button>
     </div>
   </header>
@@ -244,6 +247,24 @@ function pedirUrl(){
 }
 function guardarUrl(){var v=($("urlIn").value||"").trim(); if(!/^https:\/\/script\.google\.com\/.+\/exec/.test(v)){alert("La liga debe terminar en /exec");return;} lsSet("dc_url",v); cargar();}
 function toggleCfg(){pedirUrl();}
+
+/* ====== Botón: traer ventas nuevas de Poster ====== */
+function syncPoster(){
+  var url=getUrl(); if(!url){ pedirUrl(); return; }
+  var b=$("btnSync"); if(b){ b.disabled=true; b.textContent="Actualizando…"; }
+  var cb="dcSY_"+Date.now();
+  window[cb]=function(res){
+    delete window[cb];
+    if(b){ b.disabled=false; b.textContent="⟳ Traer de Poster"; }
+    if(res&&res.ok){ cargar(); }
+    else { alert("No se pudo traer de Poster: "+((res&&res.error)||"revisa el token/despliegue")); }
+  };
+  var s=document.createElement("script");
+  s.src=url+(url.indexOf("?")>-1?"&":"?")+"action=sync_poster&dias=7&callback="+cb+"&t="+Date.now();
+  s.onerror=function(){ if(b){b.disabled=false;b.textContent="⟳ Traer de Poster";} alert("Error de conexión con el script."); };
+  document.body.appendChild(s);
+  setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 60000);
+}
 
 cargar();
 </script>
