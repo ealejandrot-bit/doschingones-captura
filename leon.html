@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dos Chingones · Seguimiento del Consejo</title>
+<title>Dos Chingones · Consejo León</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -122,13 +122,13 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
   <div class="topnav">
     <a href="index.html">Captura</a>
     <a href="reporte.html">Reporte</a>
-    <a class="active" href="#">Consejo</a>
-    <a href="leon.html">León</a>
+    <a href="consejo.html">Consejo</a>
+    <a class="active" href="#">León</a>
   </div>
   <header class="masthead">
-    <div class="eyebrow">Consejo de Administración · Dos Chingones</div>
-    <div class="wordmark">Seguimiento de Acuerdos</div>
-    <div class="tagline">quién cumple · qué falta · cómo vamos</div>
+    <div class="eyebrow">Consejo · Dos Chingones Sucursal León</div>
+    <div class="wordmark">Acuerdos · León</div>
+    <div class="tagline">minuta 14 jul · sesión 15 ago · con evidencia</div>
   </header>
 
   <div class="mode2"><button id="mExec" class="on" onclick="setMode2('exec')">⚡ Ejecutivo</button><button id="mDet" onclick="setMode2('det')">Detalle</button></div>
@@ -146,7 +146,7 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
     <div class="naform" id="naform" style="display:none">
       <input id="naTit" placeholder="Acuerdo o compromiso... (ej. Contratar contador externo)">
       <div class="narow">
-        <select id="naCat"><option value="Consejo">Consejo</option><option value="Sistema">Sistema</option><option value="León">León</option><option value="Legal">Legal</option></select>
+        <select id="naCat"><option>Capacitación</option><option>Compras</option><option>RH</option><option>Marketing</option><option>Finanzas</option><option>Gobierno</option><option>Sistemas</option><option>Infraestructura</option></select>
         <input id="naResp" placeholder="Responsable(s), separados por coma">
         <input id="naPlazo" placeholder="Plazo (ej. Mes 3)">
         <select id="naEst"><option value="pend">Pendiente</option><option value="prog">En progreso</option><option value="cumpl">Cumplido</option><option value="atras">Atrasado</option></select>
@@ -167,43 +167,45 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
 
   <div class="foot">
     Editable en este dispositivo — tus cambios se guardan solo en este navegador.<br>
-    Consolidado de la Convocatoria y Minuta de la 2ª Sesión del Consejo.
+    Consolidado de la Minuta de Consejo León (14 jul 2026) y los informes de visita del 1 y 6 de agosto.
   </div>
 </div>
 
 <script>
 /* ===== ACUERDOS (consolidados de la convocatoria + minuta) ===== */
 var SEED=[
- {id:"c1",cat:"Consejo",tit:"Terminar catálogo de proveedores al 100%",resp:["Laura"],plazo:"Mes 1-2",avance:90,estatus:"prog",nota:"Con revisión de socios."},
- {id:"c2",cat:"Consejo",tit:"Definir reglas de cortesías, descuentos y consumos no autorizados",resp:["Vivanco","Luis"],plazo:"Mes 1-2",avance:100,estatus:"cumpl",nota:"Reportado 100% funcionando."},
- {id:"c3",cat:"Sistema",tit:"App / página web para seguimiento de acuerdos",resp:["Emilio","Laura"],plazo:"Mes 1-2",avance:75,estatus:"prog",nota:"Esta misma herramienta — en marcha."},
- {id:"c4",cat:"Consejo",tit:"Levantar inventario ciego en ambas sucursales",resp:["Ortega","Luis","Vivanco","Jona","Laura"],plazo:"Mes 1-2",avance:30,estatus:"prog",nota:"Ortega y Luis líderes; apoyo de gerentes."},
- {id:"c5",cat:"Consejo",tit:"Levantar inventario de manuales (existentes vs. faltantes)",resp:["Vivanco","Laura","Emilio","Jona"],plazo:"Mes 2",avance:35,estatus:"prog",nota:""},
- {id:"c6",cat:"Consejo",tit:"Iniciar formalización del organigrama (borrador)",resp:["Ortega","Emilio"],plazo:"Mes 2",avance:30,estatus:"prog",nota:"Borrador de organigrama pendiente de terminar."},
- {id:"c7",cat:"Consejo",tit:"Onboarding de RH y contratación de administradora",resp:["Silvia","Vivanco"],plazo:"Mes 2-4",avance:50,estatus:"prog",nota:"Administradora ya contratada; falta formalizar onboarding."},
- {id:"c8",cat:"Sistema",tit:"Documentación de inventarios/barra, costeos, recetarios y reglamento interno",resp:["Emilio","Vivanco"],plazo:"Mes 1-2",avance:95,estatus:"prog",nota:"Costeo bebidas 100%, comida 99%, reglamento listo — falta juntar."},
- {id:"c9",cat:"Consejo",tit:"Documentos de protocolo para la sesión del Consejo",resp:["Emilio"],plazo:"10 jun 2026",avance:100,estatus:"cumpl",nota:""},
- {id:"c10",cat:"Consejo",tit:"Reunión con Javier Cabrera (portal de pago de nómina)",resp:["Vivanco"],plazo:"Por definir",avance:0,estatus:"pend",nota:""},
- {id:"c11",cat:"Consejo",tit:"Plan de capacitación en videos",resp:["Vivanco","Adrián"],plazo:"Por definir",avance:0,estatus:"pend",nota:""},
- {id:"c12",cat:"Sistema",tit:"Asistente de finanzas",resp:["Irene","Laura","Emilio"],plazo:"Por definir",avance:40,estatus:"prog",nota:""},
- {id:"c13",cat:"Legal",tit:"Seguimiento con notario para habilitar préstamo",resp:["Irene","Luis","Ortega","Vivanco"],plazo:"1 mes",avance:40,estatus:"prog",nota:"Compromiso de los 4 socios."},
- {id:"c14",cat:"Consejo",tit:"Ingeniería de menú",resp:["Emilio","Luis","Ortega"],plazo:"Por definir",avance:10,estatus:"pend",nota:"Luis bebidas · Ortega comida."},
- {id:"n1",cat:"Legal",tit:"Concentrar y enviar al notario la documentación de los 4 socios y de la empresa",resp:["Luis","Irene","Ortega","Vivanco"],plazo:"1 mes",avance:60,estatus:"prog",nota:"Luis concentra; faltaba la documentación de un socio."},
- {id:"n2",cat:"León",tit:"Visita a León con levantamiento de evidencia fotográfica",resp:["Luis"],plazo:"Día siguiente a la sesión",avance:60,estatus:"prog",nota:"Confirmar evidencia."},
- {id:"n3",cat:"León",tit:"Documento de 1-2 páginas con compromisos para firma de Freddy",resp:["Luis"],plazo:"Tras la visita",avance:0,estatus:"pend",nota:""},
- {id:"n4",cat:"León",tit:"Gestionar la firma de la minuta del 14 de julio 2026",resp:["Luis","Vivanco"],plazo:"Próximos días",avance:0,estatus:"pend",nota:"Pendiente firma de Freddy."},
- {id:"n5",cat:"León",tit:"Convocar y presentar a León la propuesta de administración directa",resp:["Irene","Luis","Ortega","Vivanco"],plazo:"Próxima reunión con León",avance:0,estatus:"pend",nota:""},
- {id:"n6",cat:"Sistema",tit:"Cerrar el módulo de captura de gastos del sistema financiero",resp:["Emilio","Laura"],plazo:"Esta semana",avance:85,estatus:"prog",nota:"Efectivo, tarjeta y propinas."},
- {id:"n7",cat:"Sistema",tit:"Seguimiento semanal de captura de datos financieros por sucursal",resp:["Emilio","Laura"],plazo:"Continuo",avance:50,estatus:"prog",nota:""},
- {id:"lA",cat:"León",tit:"Definición de regalías mayo-junio 2026",resp:["Ortega","Freddy","Cristian"],plazo:"En seguimiento",avance:25,estatus:"prog",nota:"Solo 2-3 pagos cubiertos (~$5,000/socio)."},
- {id:"lB",cat:"León",tit:"Entrega del padrón de inversionistas de León",resp:["Freddy"],plazo:"En seguimiento",avance:0,estatus:"pend",nota:"León cambió de inversionistas sin notificar."},
- {id:"lC",cat:"León",tit:"Autorización previa para servicios de Monday",resp:["Freddy"],plazo:"En seguimiento",avance:30,estatus:"prog",nota:"Se propone prescindir del servicio."},
- {id:"lD",cat:"León",tit:"Continuidad del esquema León vs. reconversión",resp:["Irene","Luis","Ortega","Vivanco","Freddy"],plazo:"Hasta diciembre",avance:20,estatus:"prog",nota:"Periodo de prueba con visitas mensuales."}
+ {id:"L1",cat:"Capacitación",tit:"Enviar a Adrián a León para acompañamiento y capacitación (5–6 h; días bajos y hora rush; no operar como mesero)",resp:["Luis","Ortega","Freddy","Adrián"],plazo:"Sem. 21 jul",avance:40,estatus:"prog",nota:"Visitas del 1 y 6 ago realizadas."},
+ {id:"L2",cat:"Capacitación",tit:"Poner por escrito el esquema de Adrián y que GTO cubre el 50% del costo; notificar a Miriam",resp:["Luis","Ortega"],plazo:"Antes de 1ª visita",avance:0,estatus:"pend",nota:""},
+ {id:"L3",cat:"Capacitación",tit:"Capacitar a Jacob como gerente (objetivo principal de las visitas de Adrián)",resp:["Adrián","Jacob"],plazo:"Continuo",avance:15,estatus:"prog",nota:""},
+ {id:"L4",cat:"Compras",tit:"Comprar con distribuidor autorizado (Cavas Auto / Coop); armar Excel de facturas y pedir contacto (Ana Sofía)",resp:["Luis","Jacob"],plazo:"Inmediato",avance:0,estatus:"pend",nota:"Solo ~7 botellas de enero a la fecha."},
+ {id:"L5",cat:"Compras",tit:"Traspasar la captura de facturas a Miriam/Jacob una vez nivelado",resp:["Luis","Miriam","Jacob"],plazo:"Dic 2026",avance:0,estatus:"pend",nota:""},
+ {id:"L6",cat:"RH",tit:"Aplicar sistema de propinas por pool (se elimina el 7% a caja)",resp:["Jacob","Adrián"],plazo:"Inmediato",avance:25,estatus:"prog",nota:"Manual de propinas entregado a Jacob."},
+ {id:"L7",cat:"RH",tit:"Proceso de reclutamiento con filtro (referencias, entrevista, prueba 3 meses + evaluación); perfil validado por RH GTO",resp:["Freddy","Jacob"],plazo:"Continuo",avance:0,estatus:"pend",nota:"De ~15-20 empleados iniciales quedan ~5."},
+ {id:"L8",cat:"RH",tit:"Definir liderazgo: Freddy cabeza operativa con respaldo de Fabián; ambos responden en el grupo oficial",resp:["Freddy","Fabián"],plazo:"Inmediato",avance:20,estatus:"prog",nota:""},
+ {id:"L9",cat:"Marketing",tit:"Revisar y nivelar precio de cerveza frente al bar contiguo (La Última)",resp:["Freddy"],plazo:"15 ago",avance:0,estatus:"pend",nota:""},
+ {id:"L10",cat:"Gobierno",tit:"Dar accesos remotos y a la fuente de datos contable (Bell Analytics, cámaras, sistema, libros)",resp:["Freddy","Emilio","Miriam"],plazo:"15 ago",avance:0,estatus:"pend",nota:""},
+ {id:"L11",cat:"Marketing",tit:"Reforzar marketing de campañas (aprovechar videos existentes); GTO participa con propuestas",resp:["Gerardo","Ortega"],plazo:"Continuo",avance:0,estatus:"pend",nota:"Sin plataforma de comida para llevar aún."},
+ {id:"L12",cat:"Finanzas",tit:"Reducir gastos hormiga (filtro de agua, comida de staff medida, evaluar paneles solares)",resp:["Luis","Freddy"],plazo:"15 ago",avance:0,estatus:"pend",nota:""},
+ {id:"L13",cat:"Marketing",tit:"Subir calificación en Google Maps (QR y formularios para reseñas)",resp:["Gerardo","Freddy"],plazo:"Continuo",avance:0,estatus:"pend",nota:"Base: 170 reseñas / 4.7."},
+ {id:"L14",cat:"Sistemas",tit:"Migrar administración a Soft Restaurant (recetas, subrecetas e insumos)",resp:["Miriam","Freddy"],plazo:"~5 meses",avance:0,estatus:"pend",nota:""},
+ {id:"L15",cat:"Sistemas",tit:"Actualizar menú de cócteles y cumplir Profeco/Saltec (% alcohol y volumen por ficha)",resp:["Luis","Freddy"],plazo:"Próximas semanas",avance:0,estatus:"pend",nota:""},
+ {id:"L16",cat:"Infraestructura",tit:"Migrar a cámaras independientes (tipo Tapo con microSD) en lugar de DVR",resp:["Freddy"],plazo:"15 ago",avance:0,estatus:"pend",nota:"Sin cámaras 2-3 meses; 2 robos (~$7,000 c/u)."},
+ {id:"L17",cat:"Infraestructura",tit:"Resolver estacionamiento: 6 cajones faltantes de 14 (rentar predio / permisos)",resp:["Freddy"],plazo:"15 ago",avance:0,estatus:"pend",nota:""},
+ {id:"L18",cat:"Gobierno",tit:"Entregar padrón de inversionistas con % y aportación",resp:["Freddy"],plazo:"Antes 15 ago",avance:0,estatus:"pend",nota:"Requisito para decisiones societarias."},
+ {id:"L19",cat:"Gobierno",tit:"Habilitar auditoría financiera y acceso permanente a libros, reportería y fuente de datos de gastos",resp:["Freddy","Miriam"],plazo:"Inmediato",avance:0,estatus:"pend",nota:""},
+ {id:"L20",cat:"Gobierno",tit:"Solicitar autorización previa y por escrito de GTO para cualquier servicio de Monday",resp:["Freddy"],plazo:"Continuo",avance:0,estatus:"pend",nota:""},
+ {id:"L21",cat:"RH",tit:"Registrar y dar seguimiento a todo despido/baja de personal (motivo y fecha)",resp:["Freddy","Jacob"],plazo:"Continuo",avance:0,estatus:"pend",nota:""},
+ {id:"L22",cat:"Compras",tit:"Llevar registro especial de contratación de Agua y compra de bebidas",resp:["Miriam","Freddy"],plazo:"Mensual",avance:0,estatus:"pend",nota:""},
+ {id:"L23",cat:"Sistemas",tit:"Mantener el tablero de indicadores actualizado para cada sesión",resp:["Emilio","Freddy"],plazo:"Mensual",avance:0,estatus:"pend",nota:""},
+ {id:"LA",cat:"Finanzas",tit:"Definición de regalías mayo–junio 2026 (contra evidencia de acompañamiento)",resp:["Ortega","Freddy","Cristian"],plazo:"En revisión",avance:0,estatus:"pend",nota:"Solo 2-3 pagos cubiertos; ligadas a contraprestación."},
+ {id:"LB",cat:"Gobierno",tit:"Entrega del padrón de inversionistas con %",resp:["Freddy"],plazo:"15 ago",avance:0,estatus:"pend",nota:"Sin padrón se bloquean decisiones societarias."},
+ {id:"LC",cat:"Gobierno",tit:"Autorización de servicios de Monday",resp:["Freddy"],plazo:"Continuo",avance:0,estatus:"pend",nota:"Contratar sin autorización = falta y escalamiento."},
+ {id:"LD",cat:"Gobierno",tit:"Continuidad del esquema Dos Chingones vs. reconversión",resp:["Irene","Luis","Ortega","Vivanco","Freddy"],plazo:"15 ago",avance:0,estatus:"pend",nota:"Se decide según el periodo de prueba."}
 ];
 
 /* Acuerdos agregados desde la vista (se guardan en este navegador) */
-function loadCustom(){try{return JSON.parse(localStorage.getItem("dc_consejo_custom_v1")||"[]")}catch(e){return[]}}
-function saveCustom(){try{localStorage.setItem("dc_consejo_custom_v1",JSON.stringify(CUSTOM))}catch(e){}}
+function loadCustom(){try{return JSON.parse(localStorage.getItem("dc_leon_custom_v1")||"[]")}catch(e){return[]}}
+function saveCustom(){try{localStorage.setItem("dc_leon_custom_v1",JSON.stringify(CUSTOM))}catch(e){}}
 var CUSTOM=loadCustom();
 var ACUERDOS=SEED.concat(CUSTOM);
 function rebuild(){ACUERDOS=SEED.concat(CUSTOM);}
@@ -213,16 +215,16 @@ var ORD_EST=["atras","pend","prog","cumpl"];
 var VIEW="estatus";
 var $=function(id){return document.getElementById(id)};
 
-function loadS(){try{return JSON.parse(localStorage.getItem("dc_consejo_v1")||"{}")}catch(e){return{}}}
-function saveS(s){try{localStorage.setItem("dc_consejo_v1",JSON.stringify(s))}catch(e){}}
+function loadS(){try{return JSON.parse(localStorage.getItem("dc_leon_v1")||"{}")}catch(e){return{}}}
+function saveS(s){try{localStorage.setItem("dc_leon_v1",JSON.stringify(s))}catch(e){}}
 var STATE=loadS();
 function cur(a){var o=STATE[a.id]||{};return{estatus:o.estatus||a.estatus,avance:(o.avance!=null?o.avance:a.avance),nota:(o.nota!=null?o.nota:a.nota)};}
 
 /* ===== Marcador de strikes (3 = out) ===== */
-var SCORE_PEOPLE=["Irene","Luis","Ortega","Vivanco","Emilio","Laura","Freddy"];
-function loadK(){try{return JSON.parse(localStorage.getItem("dc_consejo_strikes_v1")||"{}")}catch(e){return{}}}
+var SCORE_PEOPLE=["Freddy","Fabián","Jacob","Adrián","Luis","Ortega","Miriam"];
+function loadK(){try{return JSON.parse(localStorage.getItem("dc_leon_strikes_v1")||"{}")}catch(e){return{}}}
 var STRIKES=loadK();
-function saveK(){try{localStorage.setItem("dc_consejo_strikes_v1",JSON.stringify(STRIKES))}catch(e){}}
+function saveK(){try{localStorage.setItem("dc_leon_strikes_v1",JSON.stringify(STRIKES))}catch(e){}}
 window.setStrike=function(p,n){var c=STRIKES[p]||0;STRIKES[p]=(c===n)?n-1:n;if(STRIKES[p]<0)STRIKES[p]=0;saveK();renderScore();};
 function renderScore(){
   var rows=SCORE_PEOPLE.map(function(p){
@@ -293,6 +295,7 @@ window.delAcuerdo=function(id){
 };
 
 function noCumpl(a){return cur(a).estatus!=="cumpl";}
+function CATS(){var seen={},out=[];ACUERDOS.forEach(function(a){if(!seen[a.cat]){seen[a.cat]=1;out.push(a.cat);}});return out;}
 function groupBy(){
   var filtro=$("filtro").value;
   if(VIEW==="cumplidos"){
@@ -306,7 +309,7 @@ function groupBy(){
     }).filter(function(g){return g.items.length;});
   }
   if(VIEW==="cat"){
-    var cats=["Consejo","Sistema","León","Legal"];
+    var cats=CATS();
     if(filtro!=="__all")cats=[filtro];
     return cats.map(function(c){return {t:c,items:ACUERDOS.filter(function(a){return a.cat===c && noCumpl(a);})}}).filter(function(g){return g.items.length;});
   }
@@ -353,7 +356,7 @@ function fillFiltro(){
   var sel=$("filtro");sel.innerHTML="";
   var opts=[["__all","— Todos —"]];
   if(VIEW==="persona")personas().forEach(function(p){opts.push([p,p])});
-  else if(VIEW==="cat")["Consejo","Sistema","León","Legal"].forEach(function(c){opts.push([c,c])});
+  else if(VIEW==="cat")CATS().forEach(function(c){opts.push([c,c])});
   else if(VIEW==="estatus")[["atras","Atrasados"],["pend","Pendientes"],["prog","En progreso"]].forEach(function(x){opts.push(x)});
   opts.forEach(function(o){var e=document.createElement("option");e.value=o[0];e.textContent=o[1];sel.appendChild(e);});
   sel.style.display=(VIEW==="cumplidos")?"none":"";
