@@ -81,7 +81,7 @@ tr.vt-tot td.amt{color:var(--accent)}
       <div class="tagline">gastos y ventas por sucursal</div>
     </div>
     <div class="controls">
-      <div class="seg"><button id="bSem" class="on" onclick="setMode('sem')">Semanal</button><button id="bMen" onclick="setMode('men')">Mensual</button></div>
+      <div class="seg"><button id="bSem" onclick="setMode('sem')">Semanal</button><button id="bMen" class="on" onclick="setMode('men')">Mensual</button></div>
       <select id="per" onchange="render()"></select>
       <button class="icon-btn" title="Actualizar" onclick="cargar()">↻</button>
       <button class="icon-btn" title="Conexión" onclick="toggleCfg()">⚙</button>
@@ -100,6 +100,8 @@ tr.vt-tot td.amt{color:var(--accent)}
 var BAKED_URL = "https://script.google.com/macros/s/AKfycbyAcnfG7OgptZO8vrDpDGX5YAcUOg-HQopBEk2xTGDtU56kTaB8TKGXw4tDWYA-9VaQ/exec";
 // A dónde apunta la pestaña "Captura" del menú (archivo del capture en tu GitHub).
 var CAPTURA_URL = "index.html";
+// Muestra de este mes EN ADELANTE (formato YYYY-MM). Deja "" para ver todo el historial.
+var DESDE_MES = "2026-08";
 
 var CONCEPTOS = ["LIMPIEZA","ADELANTO ORTEGA","ADELANTO VIVANCO","DJ","FALTANTES DE NOMINA","HIELO",
  "INSUMOS COCINA","INSUMOS BARRA","TRASLADOS DE UBER","SUELDO MAY","MATERIAL MTO","PROPINA EN TARJETA",
@@ -107,7 +109,7 @@ var CONCEPTOS = ["LIMPIEZA","ADELANTO ORTEGA","ADELANTO VIVANCO","DJ","FALTANTES
 var MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 var MESL=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
-var MODE="sem", ROWS=[], PERIODS={sem:[],men:[]};
+var MODE="men", ROWS=[], PERIODS={sem:[],men:[]};
 var $=function(id){return document.getElementById(id)};
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
@@ -141,6 +143,7 @@ function jsonp(){
 function onData(res){
   if(!res||!res.ok){ $("app").innerHTML='<div class="state"><div class="big">Error al leer la hoja</div><div>'+((res&&res.error)||"")+'</div></div>'; return; }
   ROWS=res.rows||[];
+  if(DESDE_MES) ROWS=ROWS.filter(function(r){return String(r.fecha).slice(0,7)>=DESDE_MES;});
   buildPeriods();
   fillSelector();
   render();
