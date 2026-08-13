@@ -50,6 +50,17 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 .foco .d{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:0 0 auto}
 .foco small{color:var(--muted)}
 @media(max-width:720px){.prow .cc{min-width:0;font-size:10px}.prow .nm{min-width:64px}}
+.naform-wrap{margin-bottom:14px}
+.mini.add{background:var(--navy);color:#fff}
+.mini.add.solid{background:var(--accent)}
+.naform{background:var(--surface);border-radius:13px;padding:14px 15px;margin-top:10px;box-shadow:0 1px 3px rgba(44,40,31,.06)}
+.naform input,.naform select{width:100%;padding:11px 12px;border:none;border-radius:9px;background:var(--field);font-family:var(--sans);font-size:13.5px;color:var(--ink)}
+.naform input::placeholder{color:var(--muted)}
+.narow{display:grid;grid-template-columns:1fr 1.4fr 1fr 1fr;gap:8px;margin-top:9px}
+.nabtns{display:flex;gap:8px;margin-top:11px}
+.delx{margin-left:auto;background:#fff;border:1.5px solid var(--line);color:var(--atras);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer}
+.delx:hover{background:var(--atras);color:#fff;border-color:var(--atras)}
+@media(max-width:640px){.narow{grid-template-columns:1fr 1fr}}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
 .seg{display:flex;background:var(--field);border-radius:11px;padding:4px}
 .seg button{border:none;background:transparent;color:var(--ink2);font-weight:700;font-size:12.5px;padding:7px 13px;border-radius:8px;cursor:pointer;font-family:var(--sans)}
@@ -129,6 +140,19 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
   <div id="execView"></div>
 
   <div id="detView" style="display:none">
+  <div class="naform-wrap">
+    <button class="mini add" onclick="toggleForm()" id="naToggle">＋ Nuevo acuerdo</button>
+    <div class="naform" id="naform" style="display:none">
+      <input id="naTit" placeholder="Acuerdo o compromiso... (ej. Contratar contador externo)">
+      <div class="narow">
+        <select id="naCat"><option value="Consejo">Consejo</option><option value="Sistema">Sistema</option><option value="León">León</option><option value="Legal">Legal</option></select>
+        <input id="naResp" placeholder="Responsable(s), separados por coma">
+        <input id="naPlazo" placeholder="Plazo (ej. Mes 3)">
+        <select id="naEst"><option value="pend">Pendiente</option><option value="prog">En progreso</option><option value="cumpl">Cumplido</option><option value="atras">Atrasado</option></select>
+      </div>
+      <div class="nabtns"><button class="mini add solid" onclick="addAcuerdo()">Agregar acuerdo</button><button class="mini" onclick="toggleForm()">Cancelar</button></div>
+    </div>
+  </div>
   <div class="bar">
     <div class="seg"><button id="vEst" class="on" onclick="setView('estatus')">Por estatus</button><button id="vPer" onclick="setView('persona')">Por persona</button><button id="vCat" onclick="setView('cat')">Por tema</button></div>
     <select id="filtro" onchange="render()"></select>
@@ -148,7 +172,7 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
 
 <script>
 /* ===== ACUERDOS (consolidados de la convocatoria + minuta) ===== */
-var ACUERDOS=[
+var SEED=[
  {id:"c1",cat:"Consejo",tit:"Terminar catálogo de proveedores al 100%",resp:["Laura"],plazo:"Mes 1-2",avance:90,estatus:"prog",nota:"Con revisión de socios."},
  {id:"c2",cat:"Consejo",tit:"Definir reglas de cortesías, descuentos y consumos no autorizados",resp:["Vivanco","Luis"],plazo:"Mes 1-2",avance:100,estatus:"cumpl",nota:"Reportado 100% funcionando."},
  {id:"c3",cat:"Sistema",tit:"App / página web para seguimiento de acuerdos",resp:["Emilio","Laura"],plazo:"Mes 1-2",avance:75,estatus:"prog",nota:"Esta misma herramienta — en marcha."},
@@ -175,6 +199,13 @@ var ACUERDOS=[
  {id:"lC",cat:"León",tit:"Autorización previa para servicios de Monday",resp:["Freddy"],plazo:"En seguimiento",avance:30,estatus:"prog",nota:"Se propone prescindir del servicio."},
  {id:"lD",cat:"León",tit:"Continuidad del esquema León vs. reconversión",resp:["Irene","Luis","Ortega","Vivanco","Freddy"],plazo:"Hasta diciembre",avance:20,estatus:"prog",nota:"Periodo de prueba con visitas mensuales."}
 ];
+
+/* Acuerdos agregados desde la vista (se guardan en este navegador) */
+function loadCustom(){try{return JSON.parse(localStorage.getItem("dc_consejo_custom_v1")||"[]")}catch(e){return[]}}
+function saveCustom(){try{localStorage.setItem("dc_consejo_custom_v1",JSON.stringify(CUSTOM))}catch(e){}}
+var CUSTOM=loadCustom();
+var ACUERDOS=SEED.concat(CUSTOM);
+function rebuild(){ACUERDOS=SEED.concat(CUSTOM);}
 
 var ESTS={pend:["Pendiente","pend"],prog:["En progreso","prog"],cumpl:["Cumplido","cumpl"],atras:["Atrasado","atras"]};
 var ORD_EST=["atras","pend","prog","cumpl"];
@@ -234,6 +265,7 @@ function card(a){
     '</div><div class="pct">'+s.avance+'%</div></div>'+
     '<div class="controls"><div class="sseg">'+btns+'</div>'+
       '<div class="slider"><input type="range" min="0" max="100" step="5" value="'+s.avance+'" oninput="setAv(\''+a.id+'\',this.value)"></div>'+
+      (a.id.charAt(0)==="x"?'<button class="delx" onclick="delAcuerdo(\''+a.id+'\')">🗑 Eliminar</button>':'')+
     '</div>'+
     '<input class="notein" placeholder="Nota / evidencia..." value="'+(s.nota||"").replace(/"/g,"&quot;")+'" onchange="setNota(\''+a.id+'\',this.value)">'+
   '</div>';
@@ -241,6 +273,23 @@ function card(a){
 window.setEst=function(id,k){var av=(k==="cumpl")?100:(k==="pend"?0:undefined);setField(id,"estatus",k);if(av!=null)setField(id,"avance",av);};
 window.setAv=function(id,v){v=parseInt(v,10);STATE[id]=STATE[id]||{};STATE[id].avance=v;STATE[id].estatus=v>=100?"cumpl":(v<=0?(STATE[id].estatus==="atras"?"atras":"pend"):(STATE[id].estatus==="atras"?"atras":"prog"));saveS(STATE);render();};
 window.setNota=function(id,v){setField(id,"nota",v);};
+window.toggleForm=function(){var f=$("naform");f.style.display=(f.style.display==="none"?"":"none");};
+window.addAcuerdo=function(){
+  var tit=$("naTit").value.trim(); if(!tit){alert("Escribe el acuerdo.");return;}
+  var resp=$("naResp").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
+  if(!resp.length)resp=["Por asignar"];
+  var est=$("naEst").value, av=est==="cumpl"?100:(est==="pend"?0:20);
+  CUSTOM.push({id:"x"+Date.now(),cat:$("naCat").value,tit:tit,resp:resp,plazo:($("naPlazo").value.trim()||"Por definir"),avance:av,estatus:est,nota:""});
+  saveCustom(); rebuild();
+  $("naTit").value="";$("naResp").value="";$("naPlazo").value="";
+  $("naform").style.display="none";
+  render();
+};
+window.delAcuerdo=function(id){
+  if(!confirm("¿Eliminar este acuerdo? (solo los que agregaste manualmente)"))return;
+  CUSTOM=CUSTOM.filter(function(a){return a.id!==id;});
+  saveCustom(); if(STATE[id]){delete STATE[id];saveS(STATE);} rebuild(); render();
+};
 
 function groupBy(){
   var filtro=$("filtro").value;
