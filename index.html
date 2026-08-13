@@ -126,6 +126,10 @@ textarea{resize:vertical;min-height:46px}
 </head>
 <body>
 <div class="wrap">
+  <div class="topnav">
+    <a class="active" href="#">Captura</a>
+    <a id="navRep" href="#">Reporte</a>
+  </div>
   <header class="masthead">
     <div class="mast-left">
       <div class="eyebrow">Captura · Dos Chingones</div>
@@ -364,6 +368,8 @@ $("clear").addEventListener("click",function(){
   clearTimeout(_clrT);_clrArmed=false;$("clear").textContent="Limpiar";$("clear").classList.remove("armed");
   clearAll();toast("Formulario limpiado",true);
 });
+/* Menú → Reporte (archivo reporte.html en el mismo GitHub) */
+(function(){var n=document.getElementById("navRep");if(n)n.href="reporte.html";})();
 </script>
 </body>
 </html>
