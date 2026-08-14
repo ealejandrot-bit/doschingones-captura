@@ -158,15 +158,17 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
     <div class="seg"><button id="vEst" class="on" onclick="setView('estatus')">Por estatus</button><button id="vPer" onclick="setView('persona')">Por persona</button><button id="vCat" onclick="setView('cat')">Por tema</button><button id="vCum" onclick="setView('cumplidos')">🏆 Cumplidos</button></div>
     <select id="filtro" onchange="render()"></select>
     <div class="spacer"></div>
+    <span id="saveTag" style="font-size:11px;color:var(--cumpl);font-weight:800;opacity:0;transition:opacity .3s"></span>
+    <button class="mini" id="btnEdit" onclick="unlockEdit()">🔒 Editar</button>
     <button class="mini" onclick="exportar()">📋 Copiar resumen</button>
-    <button class="mini" onclick="reset()">↺ Reiniciar</button>
+    <button class="mini" onclick="reset()">↻ Recargar</button>
   </div>
 
   <div id="app"></div>
   </div>
 
   <div class="foot">
-    Editable en este dispositivo — tus cambios se guardan solo en este navegador.<br>
+    Compartido — solo lectura; toca 🔒 Editar e ingresa el código para modificar (se guarda para todos).<br>
     Consolidado de la Convocatoria y Minuta de la 2ª Sesión del Consejo.
   </div>
 </div>
@@ -201,10 +203,36 @@ var SEED=[
  {id:"lD",cat:"León",tit:"Continuidad del esquema León vs. reconversión",resp:["Irene","Luis","Ortega","Vivanco","Freddy"],plazo:"Hasta diciembre",avance:20,estatus:"prog",nota:"Periodo de prueba con visitas mensuales."}
 ];
 
-/* Acuerdos agregados desde la vista (se guardan en este navegador) */
-function loadCustom(){try{return JSON.parse(localStorage.getItem("dc_consejo_custom_v1")||"[]")}catch(e){return[]}}
-function saveCustom(){try{localStorage.setItem("dc_consejo_custom_v1",JSON.stringify(CUSTOM))}catch(e){}}
-var CUSTOM=loadCustom();
+/* ===== Guardado COMPARTIDO (Google Sheet vía Apps Script) ===== */
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAcnfG7OgptZO8vrDpDGX5YAcUOg-HQopBEk2xTGDtU56kTaB8TKGXw4tDWYA-9VaQ/exec";
+var WHICH = "gto";  // "gto" = consejo principal
+var _cbN = 0;
+function jsonp_(params, cb){
+  var name="dcC_"+(_cbN++); window[name]=function(res){ delete window[name]; if(cb)cb(res); };
+  var s=document.createElement("script");
+  s.src=SCRIPT_URL+"?"+params+"&callback="+name+"&t="+Date.now();
+  s.onerror=function(){ delete window[name]; if(cb)cb(null); };
+  document.body.appendChild(s);
+  setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },15000);
+}
+var editable=false, EDITPIN="";
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function persist(tipo,clave,valor){ jsonp_("action=consejo_set&which="+WHICH+"&tipo="+tipo+"&clave="+encodeURIComponent(clave)+"&valor="+encodeURIComponent(JSON.stringify(valor))+"&pin="+encodeURIComponent(EDITPIN), flash); }
+function persistDel(tipo,clave){ jsonp_("action=consejo_del&which="+WHICH+"&tipo="+tipo+"&clave="+encodeURIComponent(clave)+"&pin="+encodeURIComponent(EDITPIN), flash); }
+function flash(res){ if(res&&res.ok===false)return; var e=$("saveTag"); if(e){ e.textContent="✓ guardado"; e.style.opacity="1"; clearTimeout(window._ft); window._ft=setTimeout(function(){e.style.opacity="0";},1400);} }
+function avisoLock(){ alert("Vista de solo lectura.\nToca 🔒 Editar e ingresa el código para poder modificar."); }
+function setLockUI(){ var b=$("btnEdit"); if(b) b.textContent = editable ? "🔓 Editando" : "🔒 Editar"; }
+window.unlockEdit=function(){
+  if(editable){ editable=false; EDITPIN=""; lsSet("dc_editpin",""); setLockUI(); return; }
+  var code=prompt("Código de edición del consejo:"); if(code==null||code==="") return;
+  jsonp_("action=consejo_check&pin="+encodeURIComponent(code), function(res){
+    if(res&&res.ok){ EDITPIN=code; editable=true; lsSet("dc_editpin",code); setLockUI(); }
+    else alert("Código incorrecto.");
+  });
+};
+
+var CUSTOM=[];
 var ACUERDOS=SEED.concat(CUSTOM);
 function rebuild(){ACUERDOS=SEED.concat(CUSTOM);}
 
@@ -213,17 +241,14 @@ var ORD_EST=["atras","pend","prog","cumpl"];
 var VIEW="estatus";
 var $=function(id){return document.getElementById(id)};
 
-function loadS(){try{return JSON.parse(localStorage.getItem("dc_consejo_v1")||"{}")}catch(e){return{}}}
-function saveS(s){try{localStorage.setItem("dc_consejo_v1",JSON.stringify(s))}catch(e){}}
-var STATE=loadS();
+var STATE={};
 function cur(a){var o=STATE[a.id]||{};return{estatus:o.estatus||a.estatus,avance:(o.avance!=null?o.avance:a.avance),nota:(o.nota!=null?o.nota:a.nota)};}
+function persistEstado(id){ for(var i=0;i<ACUERDOS.length;i++){ if(ACUERDOS[i].id===id){ persist("estado",id,cur(ACUERDOS[i])); return; } } }
 
 /* ===== Marcador de strikes (3 = out) ===== */
 var SCORE_PEOPLE=["Irene","Luis","Ortega","Vivanco","Emilio","Laura","Freddy"];
-function loadK(){try{return JSON.parse(localStorage.getItem("dc_consejo_strikes_v1")||"{}")}catch(e){return{}}}
-var STRIKES=loadK();
-function saveK(){try{localStorage.setItem("dc_consejo_strikes_v1",JSON.stringify(STRIKES))}catch(e){}}
-window.setStrike=function(p,n){var c=STRIKES[p]||0;STRIKES[p]=(c===n)?n-1:n;if(STRIKES[p]<0)STRIKES[p]=0;saveK();renderScore();};
+var STRIKES={};
+window.setStrike=function(p,n){if(!editable){avisoLock();return;}var c=STRIKES[p]||0;STRIKES[p]=(c===n)?n-1:n;if(STRIKES[p]<0)STRIKES[p]=0;persist("strike",p,STRIKES[p]);renderScore();};
 function renderScore(){
   var rows=SCORE_PEOPLE.map(function(p){
     var n=STRIKES[p]||0, out=n>=3;
@@ -233,7 +258,7 @@ function renderScore(){
   }).join("");
   $("score").innerHTML='<div class="score-h"><span class="t">⚾ Marcador — 3 strikes y estás out</span><span class="s">toca las bolitas para marcar</span></div>'+rows;
 }
-function setField(id,k,v){STATE[id]=STATE[id]||{};STATE[id][k]=v;saveS(STATE);render();}
+function setField(id,k,v){if(!editable){avisoLock();return;}STATE[id]=STATE[id]||{};STATE[id][k]=v;persistEstado(id);render();}
 
 function personas(){var set={};ACUERDOS.forEach(function(a){a.resp.forEach(function(r){set[r]=(set[r]||0)+1})});return Object.keys(set).sort(function(x,y){return set[y]-set[x]});}
 
@@ -272,24 +297,26 @@ function card(a){
   '</div>';
 }
 window.setEst=function(id,k){var av=(k==="cumpl")?100:(k==="pend"?0:undefined);setField(id,"estatus",k);if(av!=null)setField(id,"avance",av);};
-window.setAv=function(id,v){v=parseInt(v,10);STATE[id]=STATE[id]||{};STATE[id].avance=v;STATE[id].estatus=v>=100?"cumpl":(v<=0?(STATE[id].estatus==="atras"?"atras":"pend"):(STATE[id].estatus==="atras"?"atras":"prog"));saveS(STATE);render();};
+window.setAv=function(id,v){if(!editable){avisoLock();return;}v=parseInt(v,10);STATE[id]=STATE[id]||{};STATE[id].avance=v;STATE[id].estatus=v>=100?"cumpl":(v<=0?(STATE[id].estatus==="atras"?"atras":"pend"):(STATE[id].estatus==="atras"?"atras":"prog"));persistEstado(id);render();};
 window.setNota=function(id,v){setField(id,"nota",v);};
-window.toggleForm=function(){var f=$("naform");f.style.display=(f.style.display==="none"?"":"none");};
+window.toggleForm=function(){if(!editable){avisoLock();return;}var f=$("naform");f.style.display=(f.style.display==="none"?"":"none");};
 window.addAcuerdo=function(){
+  if(!editable){avisoLock();return;}
   var tit=$("naTit").value.trim(); if(!tit){alert("Escribe el acuerdo.");return;}
   var resp=$("naResp").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
   if(!resp.length)resp=["Por asignar"];
   var est=$("naEst").value, av=est==="cumpl"?100:(est==="pend"?0:20);
-  CUSTOM.push({id:"x"+Date.now(),cat:$("naCat").value,tit:tit,resp:resp,plazo:($("naPlazo").value.trim()||"Por definir"),avance:av,estatus:est,nota:""});
-  saveCustom(); rebuild();
+  var nuevo={id:"x"+Date.now(),cat:$("naCat").value,tit:tit,resp:resp,plazo:($("naPlazo").value.trim()||"Por definir"),avance:av,estatus:est,nota:""};
+  CUSTOM.push(nuevo); persist("custom",nuevo.id,nuevo); rebuild();
   $("naTit").value="";$("naResp").value="";$("naPlazo").value="";
   $("naform").style.display="none";
   render();
 };
 window.delAcuerdo=function(id){
+  if(!editable){avisoLock();return;}
   if(!confirm("¿Eliminar este acuerdo? (solo los que agregaste manualmente)"))return;
   CUSTOM=CUSTOM.filter(function(a){return a.id!==id;});
-  saveCustom(); if(STATE[id]){delete STATE[id];saveS(STATE);} rebuild(); render();
+  persistDel("custom",id); if(STATE[id]){delete STATE[id];persistDel("estado",id);} rebuild(); render();
 };
 
 function noCumpl(a){return cur(a).estatus!=="cumpl";}
@@ -359,7 +386,13 @@ function fillFiltro(){
   sel.style.display=(VIEW==="cumplidos")?"none":"";
 }
 window.setView=function(v){VIEW=v;$("vEst").classList.toggle("on",v==="estatus");$("vPer").classList.toggle("on",v==="persona");$("vCat").classList.toggle("on",v==="cat");$("vCum").classList.toggle("on",v==="cumplidos");fillFiltro();render();};
-window.reset=function(){if(confirm("¿Borrar todos tus cambios (estatus y strikes) y volver al inicio?")){STATE={};saveS(STATE);STRIKES={};saveK();render();}};
+window.reset=function(){ cargar(); };  // recargar lo guardado por todos
+function cargar(){
+  jsonp_("action=consejo_get&which="+WHICH, function(res){
+    if(res){ STATE=res.estados||{}; STRIKES=res.strikes||{}; CUSTOM=res.custom||[]; rebuild(); }
+    fillFiltro(); render();
+  });
+}
 window.exportar=function(){
   var by={};ACUERDOS.forEach(function(a){var s=cur(a);(by[s.estatus]=by[s.estatus]||[]).push("• "+a.tit+" ("+a.resp.join(", ")+") — "+s.avance+"%"+(s.nota?" · "+s.nota:""));});
   var L={cumpl:"✅ CUMPLIDOS",prog:"🔸 EN PROGRESO",pend:"⚪ PENDIENTES",atras:"🔴 ATRASADOS"};
@@ -368,7 +401,8 @@ window.exportar=function(){
   navigator.clipboard.writeText(txt).then(function(){alert("Resumen copiado — ya puedes pegarlo en WhatsApp.");},function(){prompt("Copia el resumen:",txt);});
 };
 
-fillFiltro();render();
+fillFiltro();render();cargar();
+(function(){ var pin=lsGet("dc_editpin"); if(pin){ jsonp_("action=consejo_check&pin="+encodeURIComponent(pin), function(res){ if(res&&res.ok){ EDITPIN=pin; editable=true; setLockUI(); } }); } })();
 </script>
 </body>
 </html>
