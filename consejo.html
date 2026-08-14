@@ -115,6 +115,18 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
 .out{margin-left:auto;font-weight:800;font-size:11px;padding:4px 11px;border-radius:20px;background:rgba(255,255,255,.14);letter-spacing:.04em}
 .out.active{background:var(--accent);color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 @media(max-width:720px){.kpis{grid-template-columns:repeat(3,1fr)}.wordmark{font-size:32px}.sb-name{min-width:70px;font-size:13px}}
+/* Marcador combinado: strikes (izq) + avance (der) por persona */
+.cbrow{display:flex;align-items:center;gap:12px;padding:8px 8px;border-radius:9px}
+.cbrow+.cbrow{margin-top:3px}
+.cbrow.out-row{background:rgba(212,46,34,.28)}
+.cbrow .balls{flex:0 0 auto}
+.cb-name{font-weight:700;min-width:74px;font-size:14px}
+.cb-bar{flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden;min-width:50px}
+.cb-bar span{display:block;height:100%;background:var(--cumpl)}
+.cb-pct{font-weight:800;font-variant-numeric:tabular-nums;min-width:44px;text-align:right;font-size:14px}
+.cb-out{font-weight:800;font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.14);letter-spacing:.03em;min-width:34px;text-align:center}
+.cb-out.active{background:var(--accent);color:#fff}
+@media(max-width:720px){.cb-name{min-width:56px;font-size:13px}.cbrow{gap:8px}.cbrow .ball{width:22px;height:22px;font-size:12px}}
 </style>
 </head>
 <body>
@@ -346,14 +358,21 @@ function groupBy(){
 var MODE2="exec";
 window.setMode2=function(m){MODE2=m;$("mExec").classList.toggle("on",m==="exec");$("mDet").classList.toggle("on",m==="det");$("execView").style.display=m==="exec"?"":"none";$("detView").style.display=m==="det"?"":"none";render();};
 function renderExec(){
-  var ppl=personas().map(function(p){
+  var combo=SCORE_PEOPLE.map(function(p){
     var items=ACUERDOS.filter(function(a){return a.resp.indexOf(p)>-1;});
-    var av=Math.round(items.reduce(function(s,a){return s+cur(a).avance;},0)/items.length);
-    var pend=items.filter(function(a){var e=cur(a).estatus;return e==="pend"||e==="atras";}).length;
-    return {p:p,av:av,n:items.length,pend:pend};
-  }).sort(function(a,b){return b.av-a.av;});
-  var rows=ppl.map(function(x){
-    return '<div class="prow"><span class="nm">'+x.p+'</span><div class="pbar"><span style="width:'+x.av+'%"></span></div><span class="pp">'+x.av+'%</span><span class="cc">'+x.n+' acuerdo(s) · '+x.pend+' x cubrir</span></div>';
+    var av=items.length?Math.round(items.reduce(function(s,a){return s+cur(a).avance;},0)/items.length):null;
+    var n=STRIKES[p]||0;
+    return {p:p,av:av,n:n,out:n>=3};
+  }).sort(function(a,b){return (b.av==null?-1:b.av)-(a.av==null?-1:a.av);});
+  var rows=combo.map(function(x){
+    var balls=[1,2,3].map(function(i){return '<div class="ball'+(x.n>=i?" on":"")+'" onclick="setStrike(\''+x.p+'\','+i+')">'+(x.n>=i?"⚾":"")+'</div>';}).join("");
+    var pct=(x.av==null?"—":x.av+"%"), w=(x.av==null?0:x.av);
+    return '<div class="cbrow'+(x.out?" out-row":"")+'">'+
+      '<div class="balls">'+balls+'</div>'+
+      '<span class="cb-name">'+x.p+'</span>'+
+      '<div class="cb-bar"><span style="width:'+w+'%"></span></div>'+
+      '<span class="cb-pct">'+pct+'</span>'+
+      '<span class="cb-out'+(x.out?" active":"")+'">'+(x.out?"OUT":x.n+"/3")+'</span></div>';
   }).join("");
   var foc=ACUERDOS.map(function(a){return {a:a,s:cur(a)};}).filter(function(o){return o.s.estatus==="atras"||o.s.estatus==="pend";})
      .sort(function(a,b){return (a.s.estatus==="atras"?0:1)-(b.s.estatus==="atras"?0:1);});
@@ -362,13 +381,16 @@ function renderExec(){
     return '<div class="foco"><span class="d" style="background:'+col+'"></span><div><b>'+o.a.tit+'</b><br><small>'+o.a.resp.join(", ")+' · 🗓 '+o.a.plazo+'</small></div></div>';
   }).join("");
   $("execView").innerHTML=
-    '<div class="epanel"><h3>Avance por persona</h3>'+rows+'</div>'+
+    '<div class="score"><div class="score-h"><span class="t">⚾ Marcador · strikes y avance</span><span class="s">pelotas a la izquierda · avance a la derecha</span></div>'+rows+'</div>'+
     '<div class="epanel"><h3>🔴 Focos rojos · requieren atención</h3>'+(focos||'<div style="color:var(--muted)">Todo al día 🎉</div>')+'</div>';
 }
+
 function render(){
   kpis();
-  renderScore();
-  if(MODE2==="exec"){ renderExec(); return; }
+  var _exec=(MODE2==="exec");
+  $("score").style.display=_exec?"none":"";
+  if(!_exec)renderScore();
+  if(_exec){ renderExec(); return; }
   var groups=groupBy();
   $("app").innerHTML=groups.map(function(g){
     var av=g.items.reduce(function(s,a){return s+cur(a).avance;},0)/g.items.length;
