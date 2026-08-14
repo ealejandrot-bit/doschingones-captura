@@ -108,9 +108,17 @@ var CAPTURA_URL = "index.html";
 // Muestra de este mes EN ADELANTE (formato YYYY-MM). Deja "" para ver todo el historial.
 var DESDE_MES = "2026-08";
 
-var CONCEPTOS = ["LIMPIEZA","ADELANTO ORTEGA","ADELANTO VIVANCO","DJ","FALTANTES DE NOMINA","HIELO",
- "INSUMOS COCINA","INSUMOS BARRA","TRASLADOS DE UBER","SUELDO MAY","MATERIAL MTO","PROPINA EN TARJETA",
- "COMIDA DE PERSONAL","RETIROS DE CAJA","TORTILLAS","PAGOS GARDEN","POSTRES","VARIOS"];
+// Orden preferido; los conceptos nuevos que no estén aquí se agregan solos (antes de VARIOS)
+var ORDEN_PREF = ["ADELANTO ORTEGA","ADELANTO VIVANCO","ADELANTO IRENE","COMIDA DE PERSONAL","LIMPIEZA",
+ "INSUMOS BARRA","INSUMOS COCINA","PROPINA EN TARJETA","PAPELERIA","TORTILLA","HIELOS","TRASLADOS DE UBER",
+ "VALLET PARKING","NIÑERA","DJ","JUGUETES","MEDICAMENTOS","MATERIAL MTO","FALTANTES DE NOMINA",
+ "RETIROS DE CAJA","PAGOS GARDEN","POSTRES","VARIOS"];
+function ordenarConceptos(presentes){
+  var known = ORDEN_PREF.filter(function(c){ return presentes[c]; });
+  var extra = Object.keys(presentes).filter(function(c){ return ORDEN_PREF.indexOf(c)<0; }).sort();
+  var vi = known.indexOf("VARIOS");
+  return vi>=0 ? known.slice(0,vi).concat(extra, ["VARIOS"]) : known.concat(extra);
+}
 var MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 var MESL=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
@@ -193,9 +201,9 @@ function branchData(rs,suc){
   });
   return {g:g,ventas:ventas,propina:propina};
 }
-function tablaConceptos(b){
+function tablaConceptos(b, lista){
   var tot=0;
-  var rows=CONCEPTOS.map(function(c){
+  var rows=lista.map(function(c){
     var v=b.g[c]||0; tot+=v;
     var cls=v>0?"":" class=\"vacia\"";
     var pg=c==="PAGOS GARDEN"?" pagos-garden":"";
@@ -216,14 +224,18 @@ function render(){
   var idx=Math.min($("per").value|0, arr.length-1), per=arr[idx];
   var rs=rowsIn(per), sucs=sucList(rs);
   var vt=0,tar=0,efe=0,gas=0;
-  var cards=sucs.map(function(suc){
-    var b=branchData(rs,suc);
+  // datos por sucursal + unión de conceptos presentes (para que TODAS las tablas tengan las mismas filas)
+  var presentes={};
+  var datos=sucs.map(function(suc){ var b=branchData(rs,suc); Object.keys(b.g).forEach(function(c){presentes[c]=true;}); return {suc:suc,b:b}; });
+  var lista=ordenarConceptos(presentes);
+  var cards=datos.map(function(o){
+    var b=o.b, suc=o.suc;
     vt+=b.ventas.total; tar+=b.ventas.tarjeta; efe+=b.ventas.efectivo;
-    gas+=CONCEPTOS.reduce(function(s,c){return s+(b.g[c]||0);},0);
+    gas+=Object.keys(b.g).reduce(function(s,c){return s+b.g[c];},0);
     var cls=suc==="LA PRESA"?"presa":(suc==="LEON"?"leon":"garden");
     var emoji=suc==="LA PRESA"?"🏞️":(suc==="LEON"?"🦁":"🌿");
     return "<div class=\"suc\"><div class=\"suc-head "+cls+"\"><h2>"+emoji+" "+suc+"</h2><span class=\"rango\">"+per.rango+"</span></div>"+
-      "<div class=\"suc-body\">"+tablaConceptos(b)+ventaTarjeta(b)+"</div></div>";
+      "<div class=\"suc-body\">"+tablaConceptos(b,lista)+ventaTarjeta(b)+"</div></div>";
   }).join("");
   var kpis="<div class=\"kpis\">"+
     "<div class=\"kpi v\"><div class=\"lbl\">Venta total</div><div class=\"val\">"+mx0(vt)+"</div><div class=\"sub\">"+sucs.length+" sucursal(es)</div></div>"+
@@ -231,9 +243,9 @@ function render(){
     "<div class=\"kpi e\"><div class=\"lbl\">Venta efectivo</div><div class=\"val\">"+mx0(efe)+"</div><div class=\"sub\">"+(vt?Math.round(efe/vt*100):0)+"% de la venta</div></div>"+
     "<div class=\"kpi g\"><div class=\"lbl\">Gastos</div><div class=\"val\">"+mx0(gas)+"</div><div class=\"sub\">en el periodo</div></div></div>";
   $("app").innerHTML=kpis+"<div class=\"grid\">"+cards+"</div>"+
-    "<div class=\"note\"><b>Cómo se arma.</b> Todo sale en vivo de la hoja: los <b>gastos</b> se agrupan en tu orden fijo de conceptos, "+
-    "y <b>VENTA EN TARJETA → VENTAS</b> es lo capturado como ingreso por transferencia/tarjeta. Para que la venta cuadre con Poster, "+
-    "captura el corte semanal de cada sucursal como ingreso. Cambia entre <b>Semanal</b> y <b>Mensual</b> arriba.</div>";
+    "<div class=\"note\"><b>Cómo se arma.</b> Los <b>gastos</b> se clasifican solos por concepto (adelantos por persona, papelería, niñera, DJ, etc.). "+
+    "La tabla <b>se ajusta</b> a los conceptos que aparezcan, y <b>ambas sucursales muestran las mismas filas</b> para poder compararlas. "+
+    "<b>VENTA EN TARJETA</b> y ventas salen en vivo de Poster. Cambia entre <b>Semanal</b> y <b>Mensual</b> arriba.</div>";
 }
 function fillSelector(){var s=$("per");s.innerHTML="";PERIODS[MODE].forEach(function(p,i){var o=document.createElement("option");o.value=i;o.textContent=p.label;s.appendChild(o);});}
 function setMode(m){MODE=m;$("bSem").classList.toggle("on",m==="sem");$("bMen").classList.toggle("on",m==="men");fillSelector();render();}
