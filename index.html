@@ -272,10 +272,14 @@ function applyCode(code,auto){
 }
 function classifyNow(){
   if(state.tipo==="Propina") return; // propina se queda fija, no la reclasifiques
+  if(state._busy) return; // candado: evita el bucle classifyNow→applyCode→pickTipo→classifyNow
   const v=$("desc").value; if(!v.trim()){$("detect").className="detect";state.sat=null;return;}
-  const code=classify(v);
-  if(code){ applyCode(code,true); }
-  else{ state.sat=null; const dt=$("detect"); dt.className="detect on unk"; dt.innerHTML=`No lo reconocí automáticamente. <span class="lnk" id="chg">Elígelo aquí</span>`; $("chg").addEventListener("click",openSearch); }
+  state._busy=true;
+  try{
+    const code=classify(v);
+    if(code){ applyCode(code,true); }
+    else{ state.sat=null; const dt=$("detect"); dt.className="detect on unk"; dt.innerHTML=`No lo reconocí automáticamente. <span class="lnk" id="chg">Elígelo aquí</span>`; $("chg").addEventListener("click",openSearch); }
+  } finally { state._busy=false; }
 }
 let dbt; $("desc").addEventListener("input",()=>{clearTimeout(dbt);dbt=setTimeout(classifyNow,350);});
 $("desc").addEventListener("blur",()=>{ $("desc").value=$("desc").value.toUpperCase().replace(/\s+/g," ").trim(); classifyNow(); });
