@@ -273,7 +273,7 @@ function cur(a){var o=STATE[a.id]||{};return{estatus:o.estatus||a.estatus,avance
 function persistEstado(id){ for(var i=0;i<ACUERDOS.length;i++){ if(ACUERDOS[i].id===id){ persist("estado",id,cur(ACUERDOS[i])); return; } } }
 
 /* ===== Marcador de strikes (3 = out) ===== */
-var SCORE_PEOPLE=["Freddy","Fabián","Jacob","Adrián","Luis","Ortega","Miriam"];
+var SCORE_PEOPLE=["Vivanco","Freddy","Fabián","Jacob","Adrián","Luis","Ortega","Miriam"];
 var STRIKES={};
 window.setStrike=function(p,n){if(!editable){avisoLock();return;}var c=STRIKES[p]||0;STRIKES[p]=(c===n)?n-1:n;if(STRIKES[p]<0)STRIKES[p]=0;persist("strike",p,STRIKES[p]);renderScore();};
 function scoreInner(){
@@ -380,7 +380,7 @@ function renderExec(){
     var av=items.length?Math.round(items.reduce(function(s,a){return s+cur(a).avance;},0)/items.length):null;
     var n=STRIKES[p]||0;
     return {p:p,av:av,n:n,out:n>=3};
-  }).sort(function(a,b){return (b.av==null?-1:b.av)-(a.av==null?-1:a.av);});
+  }).sort(function(a,b){ if(a.p==="Vivanco")return -1; if(b.p==="Vivanco")return 1; return (b.av==null?-1:b.av)-(a.av==null?-1:a.av);});
   var rows=combo.map(function(x){
     var balls=[1,2,3].map(function(i){return '<div class="ball'+(x.n>=i?" on":"")+'" onclick="setStrike(\''+x.p+'\','+i+')">'+(x.n>=i?"⚾":"")+'</div>';}).join("");
     var pct=(x.av==null?"—":x.av+"%"), w=(x.av==null?0:x.av);
