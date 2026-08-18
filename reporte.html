@@ -67,6 +67,7 @@ tr.vt-tot td.amt{color:var(--accent)}
 .note{background:var(--surface);border-radius:12px;padding:13px 15px;margin-top:18px;font-size:12px;color:var(--ink2);box-shadow:0 1px 3px rgba(44,40,31,.05)}
 .note b{color:var(--ink)}
 .foot{margin-top:16px;text-align:center;font-size:11px;color:var(--muted)}
+.frescura{display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#2e7d46;background:#e8f5ec;border:1px solid #bfe3cb;padding:5px 11px;border-radius:20px}
 @media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -83,12 +84,12 @@ tr.vt-tot td.amt{color:var(--accent)}
       <div class="eyebrow">Reporte · Dos Chingones</div>
       <div class="wordmark">Dos Chingones</div>
       <div class="tagline">gastos y ventas por sucursal</div>
+      <div class="frescura" id="frescura">Cargando…</div>
     </div>
     <div class="controls">
       <div class="seg"><button id="bSem" onclick="setMode('sem')">Semanal</button><button id="bMen" class="on" onclick="setMode('men')">Mensual</button></div>
       <select id="per" onchange="render()"></select>
-      <button class="btn-poster" id="btnSync" onclick="syncPoster()">⟳ Traer de Poster</button>
-      <button class="icon-btn" title="Refrescar vista" onclick="cargar()">↻</button>
+      <button class="btn-poster" id="btnSync" onclick="syncPoster()">⟳ Actualizar</button>
       <button class="icon-btn" title="Conexión" onclick="toggleCfg()">⚙</button>
     </div>
   </header>
@@ -114,6 +115,7 @@ var ORDEN_PREF = ["ADELANTO ORTEGA","ADELANTO VIVANCO","ADELANTO IRENE","COMIDA 
  "VALLET PARKING","NIÑERA","DJ","JUGUETES","MEDICAMENTOS","MATERIAL MTO","FALTANTES DE NOMINA",
  "RETIROS DE CAJA","PAGOS GARDEN","POSTRES","VARIOS"];
 function ordenarConceptos(presentes){
+  presentes["VARIOS"]=true; // VARIOS siempre presente (renglón fijo)
   var known = ORDEN_PREF.filter(function(c){ return presentes[c]; });
   var extra = Object.keys(presentes).filter(function(c){ return ORDEN_PREF.indexOf(c)<0; }).sort();
   var vi = known.indexOf("VARIOS");
@@ -160,7 +162,10 @@ function onData(res){
   buildPeriods();
   fillSelector();
   render();
-  $("foot").textContent="Datos en vivo de la hoja · "+ROWS.length+" movimientos · actualizado "+new Date().toLocaleString("es-MX");
+  var maxf=""; ROWS.forEach(function(r){ var f=String(r.fecha||""); if(f>maxf) maxf=f; });
+  var fmt=maxf?new Date(maxf+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"}):"—";
+  var fr=$("frescura"); if(fr) fr.textContent="✓ Información actualizada hasta el "+fmt;
+  $("foot").textContent="Datos en vivo de la hoja · "+ROWS.length+" movimientos · última carga "+new Date().toLocaleString("es-MX");
 }
 
 /* ====== AGRUPADO ====== */
@@ -205,9 +210,10 @@ function tablaConceptos(b, lista){
   var tot=0;
   var rows=lista.map(function(c){
     var v=b.g[c]||0; tot+=v;
-    var cls=v>0?"":" class=\"vacia\"";
+    var forced=(c==="VARIOS"); // renglón fijo: siempre visible y con monto (aunque sea 0)
+    var cls=(v>0||forced)?"":" class=\"vacia\"";
     var pg=c==="PAGOS GARDEN"?" pagos-garden":"";
-    return "<tr"+cls+pg+"><td>"+c+"</td><td class=\"amt\">"+(v>0?mx(v):"")+"</td></tr>";
+    return "<tr"+cls+pg+"><td>"+c+"</td><td class=\"amt\">"+((v>0||forced)?mx(v):"")+"</td></tr>";
   }).join("");
   return "<div class=\"tabla-cab\"><span>CONCEPTO</span><span>TOTAL</span></div><table>"+rows+
     "<tr class=\"tot\"><td>TOTAL</td><td class=\"amt\">"+mx(tot)+"</td></tr></table>";
@@ -267,13 +273,13 @@ function syncPoster(){
   var cb="dcSY_"+Date.now();
   window[cb]=function(res){
     delete window[cb];
-    if(b){ b.disabled=false; b.textContent="⟳ Traer de Poster"; }
+    if(b){ b.disabled=false; b.textContent="⟳ Actualizar"; }
     if(res&&res.ok){ cargar(); }
     else { alert("No se pudo traer de Poster: "+((res&&res.error)||"revisa el token/despliegue")); }
   };
   var s=document.createElement("script");
   s.src=url+(url.indexOf("?")>-1?"&":"?")+"action=sync_poster&dias=7&callback="+cb+"&t="+Date.now();
-  s.onerror=function(){ if(b){b.disabled=false;b.textContent="⟳ Traer de Poster";} alert("Error de conexión con el script."); };
+  s.onerror=function(){ if(b){b.disabled=false;b.textContent="⟳ Actualizar";} alert("Error de conexión con el script."); };
   document.body.appendChild(s);
   setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 60000);
 }
