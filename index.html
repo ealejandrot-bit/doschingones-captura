@@ -274,7 +274,8 @@ function applyCode(code,auto){
 function classifyNow(){
   if(state.tipo==="Propina") return; // propina se queda fija, no la reclasifiques
   if(state._busy) return; // candado: evita el bucle classifyNow→applyCode→pickTipo→classifyNow
-  const v=$("desc").value; if(!v.trim()){$("detect").className="detect";state.sat=null;return;}
+  const v=$("desc").value; if(!v.trim()){$("detect").className="detect";state.sat=null;state.manual=false;return;}
+  if(state.manual) return; // respeta la cuenta elegida a mano; no la sobreescribas
   state._busy=true;
   try{
     const code=classify(v);
@@ -286,7 +287,7 @@ let dbt; $("desc").addEventListener("input",()=>{clearTimeout(dbt);dbt=setTimeou
 $("desc").addEventListener("blur",()=>{ $("desc").value=$("desc").value.toUpperCase().replace(/\s+/g," ").trim(); classifyNow(); });
 
 /* quick chips */
-QUICK.forEach(q=>{const b=document.createElement("button");b.className="qbtn";b.textContent=q[0];b.addEventListener("click",()=>{state.manual=false;applyCode(q[1],false);});$("quick").appendChild(b);});
+QUICK.forEach(q=>{const b=document.createElement("button");b.className="qbtn";b.textContent=q[0];b.addEventListener("click",()=>{state.manual=true;applyCode(q[1],false);});$("quick").appendChild(b);});
 
 function pickTipo(v){
   document.querySelectorAll("#tipo button").forEach(x=>x.classList.toggle("sel",x.dataset.v===v));state.tipo=v;
@@ -309,7 +310,7 @@ sInput.addEventListener("input",()=>{const q=stripA(sInput.value.trim());if(!q){
   const hits=CAT.filter(c=>c.code.includes(q)||stripA(c.name).includes(q)).slice(0,40);
   sRes.innerHTML=hits.map(c=>`<div class="ritem" data-c="${c.code}"><span class="rc">${c.code}</span>${c.name}<br><small>${c.grupo} · ${c.estado}</small></div>`).join("")||`<div class="ritem"><small>Sin resultados</small></div>`;
   sRes.classList.add("open");});
-sRes.addEventListener("click",e=>{const it=e.target.closest(".ritem");if(!it||!it.dataset.c)return;state.manual=false;applyCode(it.dataset.c,false);sInput.value="";sRes.classList.remove("open");$("searchbox").classList.remove("on");});
+sRes.addEventListener("click",e=>{const it=e.target.closest(".ritem");if(!it||!it.dataset.c)return;state.manual=true;applyCode(it.dataset.c,false);var au=classify($("desc").value);if(au&&au!==it.dataset.c){var dt=$("detect");dt.innerHTML+=' <span style="color:#C98A00;font-weight:800">· elegido a mano (no coincide con la sugerencia, pero se guarda así)</span>';}sInput.value="";sRes.classList.remove("open");$("searchbox").classList.remove("on");});
 document.addEventListener("click",e=>{if(!e.target.closest(".searchbox")&&!e.target.closest(".lnk"))sRes.classList.remove("open");});
 
 /* pay calc */
