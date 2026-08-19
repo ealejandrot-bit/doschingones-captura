@@ -310,7 +310,11 @@ sInput.addEventListener("input",()=>{const q=stripA(sInput.value.trim());if(!q){
   const hits=CAT.filter(c=>c.code.includes(q)||stripA(c.name).includes(q)).slice(0,40);
   sRes.innerHTML=hits.map(c=>`<div class="ritem" data-c="${c.code}"><span class="rc">${c.code}</span>${c.name}<br><small>${c.grupo} · ${c.estado}</small></div>`).join("")||`<div class="ritem"><small>Sin resultados</small></div>`;
   sRes.classList.add("open");});
-sRes.addEventListener("click",e=>{const it=e.target.closest(".ritem");if(!it||!it.dataset.c)return;state.manual=true;applyCode(it.dataset.c,false);var au=classify($("desc").value);if(au&&au!==it.dataset.c){var dt=$("detect");dt.innerHTML+=' <span style="color:#C98A00;font-weight:800">· elegido a mano (no coincide con la sugerencia, pero se guarda así)</span>';}sInput.value="";sRes.classList.remove("open");$("searchbox").classList.remove("on");});
+function pickSat(it){if(!it||!it.dataset.c)return;state.manual=true;applyCode(it.dataset.c,false);var au=classify($("desc").value);if(au&&au!==it.dataset.c){var dt=$("detect");dt.innerHTML+=' <span style="color:#C98A00;font-weight:800">· elegido a mano (no coincide con la sugerencia, pero se guarda así)</span>';}sInput.value="";sRes.classList.remove("open");$("searchbox").classList.remove("on");}
+// pointerdown = toque o mouse; preventDefault evita que el campo pierda foco y que el móvil "regrese" el código
+sRes.addEventListener("pointerdown",e=>{const it=e.target.closest(".ritem");if(!it||!it.dataset.c)return;e.preventDefault();pickSat(it);});
+// respaldo para navegadores sin pointer events
+sRes.addEventListener("click",e=>{const it=e.target.closest(".ritem");if(!it||!it.dataset.c)return;if(sRes.classList.contains("open"))pickSat(it);});
 document.addEventListener("click",e=>{if(!e.target.closest(".searchbox")&&!e.target.closest(".lnk"))sRes.classList.remove("open");});
 
 /* pay calc */
