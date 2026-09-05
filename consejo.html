@@ -83,6 +83,16 @@ select{font-size:13px;font-weight:600;padding:8px 11px;border-radius:9px;border:
 .tag{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--field);color:var(--ink2)}
 .tag.cat{background:var(--navy);color:#fff} .tag.cat.Sistema{background:#7a5b2b} .tag.cat.León{background:var(--accent)} .tag.cat.Legal{background:#4a4a4a}
 .tag.plazo{background:#f0e2c0;color:#8a6a2b}
+.tag.urg.alta{background:#fbe0dd;color:var(--atras)} .tag.urg.media{background:#f7e6c4;color:#8a6a2b} .tag.urg.baja{background:var(--field);color:var(--muted)}
+.tag.venc{background:#e5e9fb;color:var(--navy)} .tag.venc.late{background:#fbe0dd;color:var(--atras)}
+.urow{margin-top:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.useg{display:flex;gap:5px}
+.useg .u{border:1.5px solid var(--line);background:#fff;color:var(--ink2);font-weight:700;font-size:11.5px;padding:6px 9px;border-radius:8px;cursor:pointer;font-family:var(--sans)}
+.useg .u.alta.on{background:var(--atras);color:#fff;border-color:var(--atras)}
+.useg .u.media.on{background:var(--prog);color:#fff;border-color:var(--prog)}
+.useg .u.baja.on{background:var(--muted);color:#fff;border-color:var(--muted)}
+.vlab{font-size:12px;color:var(--ink2);font-weight:700;display:flex;align-items:center;gap:6px}
+.vlab input{padding:6px 8px;border:none;border-radius:8px;background:var(--field);font-family:var(--sans);font-size:12.5px;color:var(--ink)}
 .resp{margin-top:8px;font-size:12px;color:var(--ink2)}
 .resp b{color:var(--ink)}
 .nota{margin-top:6px;font-size:12px;color:var(--muted);font-style:italic}
@@ -254,7 +264,15 @@ var VIEW="estatus";
 var $=function(id){return document.getElementById(id)};
 
 var STATE={};
-function cur(a){var o=STATE[a.id]||{};return{estatus:o.estatus||a.estatus,avance:(o.avance!=null?o.avance:a.avance),nota:(o.nota!=null?o.nota:a.nota)};}
+function cur(a){var o=STATE[a.id]||{};return{estatus:o.estatus||a.estatus,avance:(o.avance!=null?o.avance:a.avance),nota:(o.nota!=null?o.nota:a.nota),urg:(o.urg||a.urg||"media"),venc:(o.venc!=null?o.venc:(a.venc||""))};}
+/* ===== Urgencia + vencimiento ===== */
+function urgRank(u){ return u==="alta"?3:(u==="baja"?1:2); }
+function urgTxt(u){ return u==="alta"?"🔴 Alta":(u==="baja"?"⚪ Baja":"🟡 Media"); }
+function diasVenc(venc){ if(!venc) return null; var d=new Date(venc+"T12:00:00"); if(isNaN(d.getTime())) return null; var hoy=new Date(); hoy.setHours(12,0,0,0); return Math.round((d-hoy)/86400000); }
+function vencTxt(a){ var d=diasVenc(cur(a).venc); if(d==null) return ""; if(d<0) return "⚠ vencido hace "+(-d)+"d"; if(d===0) return "⏰ vence hoy"; if(d===1) return "vence mañana"; return "vence en "+d+"d"; }
+function prioridad(a){ var s=cur(a); var score=urgRank(s.urg)*100; if(s.estatus==="atras") score+=350; var d=diasVenc(s.venc); if(d!=null){ if(d<0) score+=600+Math.min(-d,90); else if(d<=3) score+=280; else if(d<=7) score+=180; else if(d<=14) score+=90; else score+=Math.max(0,60-Math.min(d,60)); } return score; }
+window.setUrg=function(id,u){ if(!editable){avisoLock();return;} STATE[id]=STATE[id]||{}; STATE[id].urg=u; persistEstado(id); render(); };
+window.setVenc=function(id,v){ if(!editable){avisoLock();return;} STATE[id]=STATE[id]||{}; STATE[id].venc=v; persistEstado(id); render(); };
 function persistEstado(id){ for(var i=0;i<ACUERDOS.length;i++){ if(ACUERDOS[i].id===id){ var e=cur(ACUERDOS[i]); e.cancelado=!!(STATE[id]&&STATE[id].cancelado); persist("estado",id,e); return; } } }
 function isCancel(a){ var o=STATE[a.id]; return !!(o&&o.cancelado); }
 function vivos(){ return ACUERDOS.filter(function(a){ return !isCancel(a); }); }
@@ -309,7 +327,7 @@ function card(a){
   return '<div class="card '+s.estatus+'">'+
     '<div class="card-top"><div>'+
       '<div class="tit">'+a.tit+'</div>'+
-      '<div class="tags"><span class="tag cat '+a.cat+'">'+a.cat+'</span><span class="tag plazo">🗓 '+a.plazo+'</span></div>'+
+      '<div class="tags"><span class="tag cat '+a.cat+'">'+a.cat+'</span><span class="tag plazo">🗓 '+a.plazo+'</span><span class="tag urg '+(s.urg||"media")+'">'+urgTxt(s.urg||"media")+'</span>'+(vencTxt(a)?'<span class="tag venc'+(diasVenc(s.venc)<0?" late":"")+'">'+vencTxt(a)+'</span>':'')+'</div>'+
       '<div class="resp">👤 '+resp+'</div>'+
       (a.nota?'<div class="nota">'+a.nota+'</div>':'')+
     '</div><div class="pct">'+s.avance+'%</div></div>'+
@@ -320,6 +338,11 @@ function card(a){
         : '<button class="delx" onclick="cancelAcuerdo(\''+a.id+'\')">🚫 Cancelar</button>')+
       (a.id.charAt(0)==="x"?'<button class="delx" onclick="delAcuerdo(\''+a.id+'\')">🗑 Eliminar</button>':'')+
     '</div>'+
+    '<div class="urow"><div class="useg">'+
+      '<button class="u alta'+(s.urg==="alta"?" on":"")+'" onclick="setUrg(\''+a.id+'\',\'alta\')">🔴 Alta</button>'+
+      '<button class="u media'+((s.urg||"media")==="media"?" on":"")+'" onclick="setUrg(\''+a.id+'\',\'media\')">🟡 Media</button>'+
+      '<button class="u baja'+(s.urg==="baja"?" on":"")+'" onclick="setUrg(\''+a.id+'\',\'baja\')">⚪ Baja</button>'+
+    '</div><label class="vlab">Vence: <input type="date" value="'+(s.venc||"")+'" onchange="setVenc(\''+a.id+'\',this.value)"></label></div>'+
     '<input class="notein" placeholder="Nota / evidencia..." value="'+(s.nota||"").replace(/"/g,"&quot;")+'" onchange="setNota(\''+a.id+'\',this.value)">'+
   '</div>';
 }
@@ -393,11 +416,18 @@ function renderExec(){
       '<span class="cb-pct">'+pct+'</span>'+
       '<span class="cb-out'+(x.out?" active":"")+'">'+(x.out?"OUT":x.n+"/3")+'</span></div>';
   }).join("");
-  var foc=vivos().map(function(a){return {a:a,s:cur(a)};}).filter(function(o){return o.s.estatus==="atras"||o.s.estatus==="pend";})
-     .sort(function(a,b){return (a.s.estatus==="atras"?0:1)-(b.s.estatus==="atras"?0:1);});
+  // Focos = pendientes/atrasados + cualquier acuerdo urgente o por vencer (aunque esté en progreso)
+  var foc=vivos().map(function(a){return {a:a,s:cur(a)};}).filter(function(o){
+    if(o.s.estatus==="cumpl") return false;
+    if(o.s.estatus==="atras"||o.s.estatus==="pend") return true;
+    var d=diasVenc(o.s.venc);
+    return o.s.urg==="alta" || (d!=null && d<=7);
+  }).sort(function(a,b){return prioridad(b.a)-prioridad(a.a);}); // más urgente arriba
   var focos=foc.map(function(o){
-    var col=o.s.estatus==="atras"?"var(--atras)":"var(--pend)";
-    return '<div class="foco"><span class="d" style="background:'+col+'"></span><div><b>'+o.a.tit+'</b><br><small>'+o.a.resp.join(", ")+' · 🗓 '+o.a.plazo+'</small></div></div>';
+    var u=o.s.urg||"media";
+    var col=u==="alta"?"var(--atras)":(u==="baja"?"var(--muted)":"var(--prog)");
+    var vt=vencTxt(o.a), late=(diasVenc(o.s.venc)<0);
+    return '<div class="foco"><span class="d" style="background:'+col+'"></span><div><b>'+o.a.tit+'</b><br><small>'+urgTxt(u)+(vt?' · <b style="color:'+(late?"var(--atras)":"var(--navy)")+'">'+vt+'</b>':'')+' · '+o.a.resp.join(", ")+' · 🗓 '+o.a.plazo+'</small></div></div>';
   }).join("");
   $("execView").innerHTML=
     '<div class="score"><div class="score-h"><span class="t">⚾ Marcador · strikes y avance</span><span class="s">pelotas a la izquierda · avance a la derecha</span></div>'+rows+'</div>'+
