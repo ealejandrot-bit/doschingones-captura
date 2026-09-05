@@ -49,7 +49,7 @@ select{font-size:14px;font-weight:700;padding:9px 12px;border-radius:10px;border
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .suc{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(44,40,31,.05),0 14px 30px -26px rgba(44,40,31,.5)}
 .suc-head{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;color:#fff;background:var(--accent)}
-.suc-head.presa{background:var(--navy)} .suc-head.leon{background:#7a5b2b}
+.suc-head.presa{background:var(--navy)}
 .suc-head h2{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
 .suc-head .rango{font-size:11px;opacity:.9}
 .suc-body{padding:14px 16px}
@@ -78,7 +78,6 @@ tr.vt-tot td.amt{color:var(--accent)}
     <a class="active" href="#">Reporte</a>
     <a href="pagos.html">Pagos</a>
     <a href="consejo.html">Consejo</a>
-    <a href="leon.html">León</a>
   </div>
   <header class="masthead">
     <div>
@@ -159,6 +158,8 @@ function jsonp(){
 function onData(res){
   if(!res||!res.ok){ $("app").innerHTML='<div class="state"><div class="big">Error al leer la hoja</div><div>'+((res&&res.error)||"")+'</div></div>'; return; }
   ROWS=res.rows||[];
+  // León cerró: se oculta del reporte (los datos siguen en la base, solo no se muestran aquí)
+  ROWS=ROWS.filter(function(r){return String(r.suc||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().indexOf("LEON")<0;});
   if(DESDE_MES) ROWS=ROWS.filter(function(r){return String(r.fecha).slice(0,7)>=DESDE_MES;});
   buildPeriods();
   fillSelector();
@@ -189,7 +190,7 @@ function rowsIn(per){
   });
 }
 function sucList(rs){
-  var order=["GARDEN","LA PRESA","LEON"], seen={};
+  var order=["GARDEN","LA PRESA"], seen={};
   rs.forEach(function(r){seen[r.suc]=1;});
   var list=order.filter(function(s){return seen[s];});
   Object.keys(seen).forEach(function(s){if(order.indexOf(s)<0)list.push(s);});
