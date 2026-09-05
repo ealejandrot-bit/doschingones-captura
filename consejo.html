@@ -167,7 +167,7 @@ input[type=range]{flex:1;accent-color:var(--cumpl)}
     </div>
   </div>
   <div class="bar">
-    <div class="seg"><button id="vEst" class="on" onclick="setView('estatus')">Por estatus</button><button id="vPer" onclick="setView('persona')">Por persona</button><button id="vCat" onclick="setView('cat')">Por tema</button><button id="vCum" onclick="setView('cumplidos')">🏆 Cumplidos</button></div>
+    <div class="seg"><button id="vEst" class="on" onclick="setView('estatus')">Por estatus</button><button id="vPer" onclick="setView('persona')">Por persona</button><button id="vCat" onclick="setView('cat')">Por tema</button><button id="vCum" onclick="setView('cumplidos')">🏆 Cumplidos</button><button id="vCan" onclick="setView('cancelados')">🚫 Cancelados</button></div>
     <select id="filtro" onchange="render()"></select>
     <div class="spacer"></div>
     <span id="saveTag" style="font-size:11px;color:var(--cumpl);font-weight:800;opacity:0;transition:opacity .3s"></span>
@@ -255,10 +255,21 @@ var $=function(id){return document.getElementById(id)};
 
 var STATE={};
 function cur(a){var o=STATE[a.id]||{};return{estatus:o.estatus||a.estatus,avance:(o.avance!=null?o.avance:a.avance),nota:(o.nota!=null?o.nota:a.nota)};}
-function persistEstado(id){ for(var i=0;i<ACUERDOS.length;i++){ if(ACUERDOS[i].id===id){ persist("estado",id,cur(ACUERDOS[i])); return; } } }
+function persistEstado(id){ for(var i=0;i<ACUERDOS.length;i++){ if(ACUERDOS[i].id===id){ var e=cur(ACUERDOS[i]); e.cancelado=!!(STATE[id]&&STATE[id].cancelado); persist("estado",id,e); return; } } }
+function isCancel(a){ var o=STATE[a.id]; return !!(o&&o.cancelado); }
+function vivos(){ return ACUERDOS.filter(function(a){ return !isCancel(a); }); }
+window.cancelAcuerdo=function(id){
+  if(!editable){avisoLock();return;}
+  if(!confirm("¿Cancelar este compromiso? Se quita del tablero y de los conteos.\nLo puedes recuperar en la vista 🚫 Cancelados."))return;
+  STATE[id]=STATE[id]||{}; STATE[id].cancelado=true; persistEstado(id); render();
+};
+window.restaurarAcuerdo=function(id){
+  if(!editable){avisoLock();return;}
+  STATE[id]=STATE[id]||{}; STATE[id].cancelado=false; persistEstado(id); render();
+};
 
 /* ===== Marcador de strikes (3 = out) ===== */
-var SCORE_PEOPLE=["Irene","Luis","Ortega","Vivanco","Emilio","Laura","Freddy"];
+var SCORE_PEOPLE=["Irene","Luis","Ortega","Vivanco","Emilio","Laura"];
 var STRIKES={};
 window.setStrike=function(p,n){if(!editable){avisoLock();return;}var c=STRIKES[p]||0;STRIKES[p]=(c===n)?n-1:n;if(STRIKES[p]<0)STRIKES[p]=0;persist("strike",p,STRIKES[p]);renderScore();};
 function renderScore(){
@@ -272,14 +283,15 @@ function renderScore(){
 }
 function setField(id,k,v){if(!editable){avisoLock();return;}STATE[id]=STATE[id]||{};STATE[id][k]=v;persistEstado(id);render();}
 
-function personas(){var set={};ACUERDOS.forEach(function(a){a.resp.forEach(function(r){set[r]=(set[r]||0)+1})});return Object.keys(set).sort(function(x,y){return set[y]-set[x]});}
+function personas(){var set={};vivos().forEach(function(a){a.resp.forEach(function(r){set[r]=(set[r]||0)+1})});return Object.keys(set).sort(function(x,y){return set[y]-set[x]});}
 
 function kpis(){
+  var A=vivos();
   var c={pend:0,prog:0,cumpl:0,atras:0},sum=0;
-  ACUERDOS.forEach(function(a){var s=cur(a);c[s.estatus]++;sum+=s.avance;});
-  var g=Math.round(sum/ACUERDOS.length);
+  A.forEach(function(a){var s=cur(a);c[s.estatus]++;sum+=s.avance;});
+  var g=A.length?Math.round(sum/A.length):0;
   $("kpis").innerHTML=
-   '<div class="kpi"><div class="val">'+ACUERDOS.length+'</div><div class="lbl">Acuerdos</div></div>'+
+   '<div class="kpi"><div class="val">'+A.length+'</div><div class="lbl">Acuerdos</div></div>'+
    '<div class="kpi cumpl"><div class="val">'+c.cumpl+'</div><div class="lbl">Cumplidos</div></div>'+
    '<div class="kpi prog"><div class="val">'+c.prog+'</div><div class="lbl">En progreso</div></div>'+
    '<div class="kpi pend"><div class="val">'+c.pend+'</div><div class="lbl">Pendientes</div></div>'+
@@ -303,6 +315,9 @@ function card(a){
     '</div><div class="pct">'+s.avance+'%</div></div>'+
     '<div class="controls"><div class="sseg">'+btns+'</div>'+
       '<div class="slider"><input type="range" min="0" max="100" step="5" value="'+s.avance+'" oninput="setAv(\''+a.id+'\',this.value)"></div>'+
+      (isCancel(a)
+        ? '<button class="delx" onclick="restaurarAcuerdo(\''+a.id+'\')" style="color:var(--cumpl);border-color:var(--cumpl)">↩︎ Restaurar</button>'
+        : '<button class="delx" onclick="cancelAcuerdo(\''+a.id+'\')">🚫 Cancelar</button>')+
       (a.id.charAt(0)==="x"?'<button class="delx" onclick="delAcuerdo(\''+a.id+'\')">🗑 Eliminar</button>':'')+
     '</div>'+
     '<input class="notein" placeholder="Nota / evidencia..." value="'+(s.nota||"").replace(/"/g,"&quot;")+'" onchange="setNota(\''+a.id+'\',this.value)">'+
@@ -334,32 +349,36 @@ window.delAcuerdo=function(id){
 function noCumpl(a){return cur(a).estatus!=="cumpl";}
 function groupBy(){
   var filtro=$("filtro").value;
+  if(VIEW==="cancelados"){
+    return [{t:"🚫 Compromisos cancelados",items:ACUERDOS.filter(isCancel)}].filter(function(g){return g.items.length;});
+  }
+  var A=vivos();
   if(VIEW==="cumplidos"){
-    return [{t:"🏆 Base de cumplidos",items:ACUERDOS.filter(function(a){return cur(a).estatus==="cumpl";})}].filter(function(g){return g.items.length;});
+    return [{t:"🏆 Base de cumplidos",items:A.filter(function(a){return cur(a).estatus==="cumpl";})}].filter(function(g){return g.items.length;});
   }
   if(VIEW==="persona"){
     var people=filtro==="__all"?personas():[filtro];
     return people.map(function(p){
-      var items=ACUERDOS.filter(function(a){return a.resp.indexOf(p)>-1 && noCumpl(a);});
+      var items=A.filter(function(a){return a.resp.indexOf(p)>-1 && noCumpl(a);});
       return {t:p, items:items};
     }).filter(function(g){return g.items.length;});
   }
   if(VIEW==="cat"){
     var cats=["Consejo","Sistema","León","Legal"];
     if(filtro!=="__all")cats=[filtro];
-    return cats.map(function(c){return {t:c,items:ACUERDOS.filter(function(a){return a.cat===c && noCumpl(a);})}}).filter(function(g){return g.items.length;});
+    return cats.map(function(c){return {t:c,items:A.filter(function(a){return a.cat===c && noCumpl(a);})}}).filter(function(g){return g.items.length;});
   }
   // por estatus (los cumplidos viven en su propia base)
   var labels={atras:"Atrasados",pend:"Pendientes",prog:"En progreso"};
   var order=["atras","pend","prog"];
   var ests=filtro==="__all"?order:[filtro];
-  return ests.map(function(k){return {t:labels[k],items:ACUERDOS.filter(function(a){return cur(a).estatus===k;})}}).filter(function(g){return g.items.length;});
+  return ests.map(function(k){return {t:labels[k],items:A.filter(function(a){return cur(a).estatus===k;})}}).filter(function(g){return g.items.length;});
 }
 var MODE2="exec";
 window.setMode2=function(m){MODE2=m;$("mExec").classList.toggle("on",m==="exec");$("mDet").classList.toggle("on",m==="det");$("execView").style.display=m==="exec"?"":"none";$("detView").style.display=m==="det"?"":"none";render();};
 function renderExec(){
   var combo=SCORE_PEOPLE.map(function(p){
-    var items=ACUERDOS.filter(function(a){return a.resp.indexOf(p)>-1;});
+    var items=vivos().filter(function(a){return a.resp.indexOf(p)>-1;});
     var av=items.length?Math.round(items.reduce(function(s,a){return s+cur(a).avance;},0)/items.length):null;
     var n=STRIKES[p]||0;
     return {p:p,av:av,n:n,out:n>=3};
@@ -374,7 +393,7 @@ function renderExec(){
       '<span class="cb-pct">'+pct+'</span>'+
       '<span class="cb-out'+(x.out?" active":"")+'">'+(x.out?"OUT":x.n+"/3")+'</span></div>';
   }).join("");
-  var foc=ACUERDOS.map(function(a){return {a:a,s:cur(a)};}).filter(function(o){return o.s.estatus==="atras"||o.s.estatus==="pend";})
+  var foc=vivos().map(function(a){return {a:a,s:cur(a)};}).filter(function(o){return o.s.estatus==="atras"||o.s.estatus==="pend";})
      .sort(function(a,b){return (a.s.estatus==="atras"?0:1)-(b.s.estatus==="atras"?0:1);});
   var focos=foc.map(function(o){
     var col=o.s.estatus==="atras"?"var(--atras)":"var(--pend)";
@@ -405,9 +424,9 @@ function fillFiltro(){
   else if(VIEW==="cat")["Consejo","Sistema","León","Legal"].forEach(function(c){opts.push([c,c])});
   else if(VIEW==="estatus")[["atras","Atrasados"],["pend","Pendientes"],["prog","En progreso"]].forEach(function(x){opts.push(x)});
   opts.forEach(function(o){var e=document.createElement("option");e.value=o[0];e.textContent=o[1];sel.appendChild(e);});
-  sel.style.display=(VIEW==="cumplidos")?"none":"";
+  sel.style.display=(VIEW==="cumplidos"||VIEW==="cancelados")?"none":"";
 }
-window.setView=function(v){VIEW=v;$("vEst").classList.toggle("on",v==="estatus");$("vPer").classList.toggle("on",v==="persona");$("vCat").classList.toggle("on",v==="cat");$("vCum").classList.toggle("on",v==="cumplidos");fillFiltro();render();};
+window.setView=function(v){VIEW=v;$("vEst").classList.toggle("on",v==="estatus");$("vPer").classList.toggle("on",v==="persona");$("vCat").classList.toggle("on",v==="cat");$("vCum").classList.toggle("on",v==="cumplidos");$("vCan").classList.toggle("on",v==="cancelados");fillFiltro();render();};
 window.reset=function(){ cargar(); };  // recargar lo guardado por todos
 function cargar(){
   jsonp_("action=consejo_get&which="+WHICH, function(res){
@@ -416,7 +435,7 @@ function cargar(){
   });
 }
 window.exportar=function(){
-  var by={};ACUERDOS.forEach(function(a){var s=cur(a);(by[s.estatus]=by[s.estatus]||[]).push("• "+a.tit+" ("+a.resp.join(", ")+") — "+s.avance+"%"+(s.nota?" · "+s.nota:""));});
+  var by={};vivos().forEach(function(a){var s=cur(a);(by[s.estatus]=by[s.estatus]||[]).push("• "+a.tit+" ("+a.resp.join(", ")+") — "+s.avance+"%"+(s.nota?" · "+s.nota:""));});
   var L={cumpl:"✅ CUMPLIDOS",prog:"🔸 EN PROGRESO",pend:"⚪ PENDIENTES",atras:"🔴 ATRASADOS"};
   var txt="SEGUIMIENTO DE ACUERDOS · DOS CHINGONES\n\n";
   ["atras","pend","prog","cumpl"].forEach(function(k){if(by[k])txt+=L[k]+"\n"+by[k].join("\n")+"\n\n";});
